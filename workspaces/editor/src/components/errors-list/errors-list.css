@@ -1,0 +1,31 @@
+.errors-wrapper {
+    margin-top: 1rem;
+}
+
+.no-errors {
+    display: flex;
+    color: darkgreen;
+    margin-top: 1rem;
+    align-items: center;
+}
+
+.no-errors-str {
+    margin-left: 1rem;
+}
+
+.found-errors {
+    display: flex;
+    color: darkred;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.found-errors-str {
+    margin-left: 1rem;
+}
+
+.errors-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}

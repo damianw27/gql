@@ -1,0 +1,32 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": [
+    "alloy",
+    "alloy/react",
+    "alloy/typescript",
+    "prettier"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 12,
+    "sourceType": "module"
+  },
+  "plugins": [
+    "prettier"
+  ],
+  "rules": {
+    "no-constant-binary-expression": "off",
+    "no-unsafe-optional-chaining": "off",
+    "no-unused-private-class-members": "off",
+    "no-new-native-nonconstructor": "off",
+    "prefer-object-has-own": "off",
+    "@typescript-eslint/no-duplicate-enum-values": "off",
+    "@typescript-eslint/member-ordering": "off"
+  }
+}

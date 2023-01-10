@@ -1,0 +1,40 @@
+.example-code {
+  position: relative;
+  font-family: 'jetbrains-mono', monospace;
+  font-size: 0.75rem !important;
+  margin: 0.5rem 0;
+  background-color: #fff;
+  opacity: 0.75;
+  border-top: 1px solid #e3e9ef;
+  border-bottom: 1px solid #e3e9ef;
+}
+
+.example-code .example-code-line {
+  padding-left: 60px;
+}
+
+.example-code .line-number {
+  position: absolute;
+  left: 0;
+  color: #a1a1a1;
+  text-align: right;
+  width: 40px;
+  font-weight: 100;
+  border-right: 1px solid #e3e9ef;
+  padding-right: 15px;
+  background-color: #f6f6f6;
+}
+
+.example-code .example-code-line .token {
+  font-family: 'jetbrains-mono', monospace !important;
+}
+
+.example-code .example-code-line .punctuation {
+  color: black;
+  font-weight: bold;
+}
+
+.example-code .example-code-line .data-type {
+  color: #990055;
+  font-weight: bold;
+}
