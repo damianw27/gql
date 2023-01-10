@@ -1,18 +1,18 @@
 {
   "files": {
-    "main.css": "/gql-editor/static/css/main.8c153718.chunk.css",
-    "main.js": "/gql-editor/static/js/main.66a7ff3f.chunk.js",
-    "main.js.map": "/gql-editor/static/js/main.66a7ff3f.chunk.js.map",
-    "runtime-main.js": "/gql-editor/static/js/runtime-main.37728b7b.js",
-    "runtime-main.js.map": "/gql-editor/static/js/runtime-main.37728b7b.js.map",
-    "static/js/2.ba5bcb2b.chunk.js": "/gql-editor/static/js/2.ba5bcb2b.chunk.js",
-    "static/js/2.ba5bcb2b.chunk.js.map": "/gql-editor/static/js/2.ba5bcb2b.chunk.js.map",
-    "index.html": "/gql-editor/index.html",
-    "static/css/main.8c153718.chunk.css.map": "/gql-editor/static/css/main.8c153718.chunk.css.map",
-    "static/js/2.ba5bcb2b.chunk.js.LICENSE.txt": "/gql-editor/static/js/2.ba5bcb2b.chunk.js.LICENSE.txt"
+    "main.css": "/master-thesis/static/css/main.8c153718.chunk.css",
+    "main.js": "/master-thesis/static/js/main.66a7ff3f.chunk.js",
+    "main.js.map": "/master-thesis/static/js/main.66a7ff3f.chunk.js.map",
+    "runtime-main.js": "/master-thesis/static/js/runtime-main.57f8c4b1.js",
+    "runtime-main.js.map": "/master-thesis/static/js/runtime-main.57f8c4b1.js.map",
+    "static/js/2.ba5bcb2b.chunk.js": "/master-thesis/static/js/2.ba5bcb2b.chunk.js",
+    "static/js/2.ba5bcb2b.chunk.js.map": "/master-thesis/static/js/2.ba5bcb2b.chunk.js.map",
+    "index.html": "/master-thesis/index.html",
+    "static/css/main.8c153718.chunk.css.map": "/master-thesis/static/css/main.8c153718.chunk.css.map",
+    "static/js/2.ba5bcb2b.chunk.js.LICENSE.txt": "/master-thesis/static/js/2.ba5bcb2b.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.37728b7b.js",
+    "static/js/runtime-main.57f8c4b1.js",
     "static/js/2.ba5bcb2b.chunk.js",
     "static/css/main.8c153718.chunk.css",
     "static/js/main.66a7ff3f.chunk.js"
