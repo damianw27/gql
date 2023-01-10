@@ -1,0 +1,24 @@
+{
+    "env": {
+      "es2021": true
+    },
+    "extends": [
+      "alloy",
+      "alloy/typescript",
+      "prettier"
+    ],
+    "plugins": [
+      "prettier"
+    ],
+    "overrides": [
+    ],
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+    },
+    "rules": {
+    },
+    "ignorePatterns": [
+      "src/generated/**/*"
+    ]
+  }
