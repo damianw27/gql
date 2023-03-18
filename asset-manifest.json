@@ -1,20 +1,13 @@
 {
   "files": {
-    "main.css": "/master-thesis/static/css/main.8c153718.chunk.css",
-    "main.js": "/master-thesis/static/js/main.66a7ff3f.chunk.js",
-    "main.js.map": "/master-thesis/static/js/main.66a7ff3f.chunk.js.map",
-    "runtime-main.js": "/master-thesis/static/js/runtime-main.57f8c4b1.js",
-    "runtime-main.js.map": "/master-thesis/static/js/runtime-main.57f8c4b1.js.map",
-    "static/js/2.ba5bcb2b.chunk.js": "/master-thesis/static/js/2.ba5bcb2b.chunk.js",
-    "static/js/2.ba5bcb2b.chunk.js.map": "/master-thesis/static/js/2.ba5bcb2b.chunk.js.map",
+    "main.css": "/master-thesis/static/css/main.27b8bbc1.css",
+    "main.js": "/master-thesis/static/js/main.18b779cb.js",
     "index.html": "/master-thesis/index.html",
-    "static/css/main.8c153718.chunk.css.map": "/master-thesis/static/css/main.8c153718.chunk.css.map",
-    "static/js/2.ba5bcb2b.chunk.js.LICENSE.txt": "/master-thesis/static/js/2.ba5bcb2b.chunk.js.LICENSE.txt"
+    "main.27b8bbc1.css.map": "/master-thesis/static/css/main.27b8bbc1.css.map",
+    "main.18b779cb.js.map": "/master-thesis/static/js/main.18b779cb.js.map"
   },
   "entrypoints": [
-    "static/js/runtime-main.57f8c4b1.js",
-    "static/js/2.ba5bcb2b.chunk.js",
-    "static/css/main.8c153718.chunk.css",
-    "static/js/main.66a7ff3f.chunk.js"
+    "static/css/main.27b8bbc1.css",
+    "static/js/main.18b779cb.js"
   ]
 }
