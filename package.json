@@ -6,8 +6,8 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "setup": "yarn && node scripts/setup.js",
-    "parser:build": "yarn workspace gql-parser build",
+    "setup": "node scripts/setup.js",
+    "parser:build": "yarn parser:generate && yarn workspace gql-parser build",
     "parser:generate": "yarn workspace gql-parser generate",
     "interface:dev": "yarn workspace gql-editor start",
     "interface:deploy": "yarn workspace gql-editor build && yarn workspace gql-editor deploy"

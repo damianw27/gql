@@ -2,14 +2,11 @@
   "name": "gql-parser",
   "version": "1.0.0",
   "description": "GQL parser implemented in ANTLR",
-  "main": "dist/public-api.js",
-  "types": "dist/public-api.ts",
-  "files": [
-    "dist/**/*"
-  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["/dist"],
   "author": "Damian Wileński",
   "license": "MIT",
-  "private": true,
   "type": "commonjs",
   "scripts": {
     "generate": "node scripts/generate.js",

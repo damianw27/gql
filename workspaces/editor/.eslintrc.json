@@ -27,6 +27,19 @@
     "no-new-native-nonconstructor": "off",
     "prefer-object-has-own": "off",
     "@typescript-eslint/no-duplicate-enum-values": "off",
-    "@typescript-eslint/member-ordering": "off"
-  }
+    "@typescript-eslint/member-ordering": "off",
+    "prettier/prettier": [
+      "error",
+      {
+        "trailingComma": "all",
+        "tabWidth": 2,
+        "semi": true,
+        "singleQuote": true,
+        "printWidth": 80
+      }
+    ]
+  },
+  "ignorePatterns": [
+    "craco.config.js"
+  ]
 }

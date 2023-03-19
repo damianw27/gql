@@ -1,15 +1,33 @@
 const { execSync } = require('child_process');
 
 console.log('Cleaning output directory...');
-execSync('rimraf src/generated/*');
+
+try {
+  execSync('rimraf src/generated/*');
+} catch (error) {
+  console.log(error.message);
+}
 
 console.log('Generating source from ANTLR grammar...');
-execSync('antlr4 -Dlanguage=JavaScript -o src/generated/ antlr/GqlLexer.g4 -o src/generated/ antlr/GqlParser.g4 ', { stdio: 'inherit' });
+
+try {
+  execSync(
+    'antlr4 -Dlanguage=JavaScript -o src/generated/ antlr/GqlLexer.g4 -o src/generated/ antlr/GqlParser.g4 ',
+    { stdio: 'inherit' },
+  );
+} catch (error) {
+  console.error(error.message);
+}
 
 console.log('Cleaning output directory after generation...');
-execSync('rimraf src/generated/pgs.interp');
-execSync('rimraf src/generated/pgs.tokens');
-execSync('rimraf src/generated/pgsLexer.interp');
-execSync('rimraf src/generated/pgsLexer.tokens');
+
+try {
+  execSync('rimraf src/generated/GqlParser.interp');
+  execSync('rimraf src/generated/GqlParser.tokens');
+  execSync('rimraf src/generated/GqlLexer.interp');
+  execSync('rimraf src/generated/GqlLexer.tokens');
+} catch (error) {
+  console.error(error.message);
+}
 
 console.log('Successfully generated parser sources.');

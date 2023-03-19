@@ -5,864 +5,702 @@ options {
 	tokenVocab = GqlLexer;
 }
 
-gqlParser:
-	(LEFT_BRACKET requestParameterSet* RIGHT_BRACKET)? gqlProgram;
+// program grammar
+gqlProgram: (separator? activity separator? ';'?)* EOF;
 
-requestParameterSet:
-	parameterDefinition (COMMA parameterDefinition)*;
+activity: programActivity (separator sessionCloseCommand)?;
 
-gqlProgram: preamble? mainActivity;
+programActivity: sessionActivity | transactionActivity;
 
-mainActivity:
-	sessionActivity
-	| (
-		sessionActivity? (transactionActivity sessionActivity?)* sessionCloseCommand?
-	)
-	| sessionCloseCommand;
-
-sessionActivity:
-	sessionClearCommand (sessionParameterCommand)*
-	| (sessionParameterCommand)+;
-
-sessionParameterCommand:
-	sessionSetCommand
-	| sessionRemoveCommand;
-
-transactionActivity:
-	startTransactionCommand (
-		procedureSpecification (endTransactionCommand)?
-	)
-	| procedureSpecification (endTransactionCommand)
-	| endTransactionCommand;
-
-preamble: preambleOption (COMMA preambleOption)*;
-
-preambleOption:
-	PROFILE
-	| EXPLAIN
-	| preambleOptionIdentifier ( EQUALS literal)?;
-
-preambleOptionIdentifier: identifier;
+// session management grammar
+sessionActivity: sessionSetCommand | sessionResetCommand;
 
 sessionSetCommand:
-	SESSION_SET LEFT_BRACE (
+	SESSION separator SET separator (
 		sessionSetSchemaClause
 		| sessionSetGraphClause
 		| sessionSetTimeZoneClause
 		| sessionSetParameterClause
-	) RIGHT_BRACE;
+	);
 
-sessionSetSchemaClause: SCHEMA schemaReference;
+sessionSetSchemaClause: SCHEMA separator schemaRef;
 
-sessionSetGraphClause: graphResolutionExpression;
+sessionSetGraphClause:
+	(PROPERTY separator)? GRAPH separator graphExpr;
 
-sessionSetTimeZoneClause: TIME_ZONE setTimeZoneValue;
+sessionSetTimeZoneClause:
+	TIME separator ZONE separator setTimeZoneValue;
 
-setTimeZoneValue: stringValueExpression;
+setTimeZoneValue: stringValueExpr;
 
 sessionSetParameterClause:
-	sessionParameterFlag? sessionParameter (IF_NOT_EXISTS)?;
-
-sessionParameterFlag: MUTABLE | FINAL;
-
-sessionParameter: PARAMETER? parameterDefinition;
-
-sessionRemoveCommand: SESSION? REMOVE identifier IF_EXISTS?;
-
-sessionClearCommand: SESSION? CLEAR;
-
-sessionCloseCommand: SESSION? CLOSE;
-
-startTransactionCommand:
-	START_TRANSACTION transactionCharacteristics;
-
-endTransactionCommand: commitCommand | rollbackCommand;
-
-transactionCharacteristics:
-	transactionMode (COMMA transactionMode)*;
-
-transactionMode:
-	transactionAccessMode
-	| implementationDefinedAccessMode;
-
-transactionAccessMode: READ_ONLY | READ_WRITE;
-
-implementationDefinedAccessMode:;
-// See the Syntax Rules;
-
-rollbackCommand: ROLLBACK;
-
-commitCommand: COMMIT;
-
-nestedProcedureSpecification:
-	LEFT_BRACE procedureSpecification RIGHT_BRACE;
-
-procedureSpecification:
-	catalogModifyingProcedureSpecification
-	| dataModifyingProcedureSpecification
-	| querySpecification
-	| functionSpecification;
-
-nestedCatalogModifyingProcedureSpecification:
-	LEFT_BRACE catalogModifyingProcedureSpecification RIGHT_BRACE;
-
-catalogModifyingProcedureSpecification: procedureBody;
-
-nestedDataModifyingProcedureSpecification:
-	LEFT_BRACE dataModifyingProcedureSpecification RIGHT_BRACE;
-
-dataModifyingProcedureSpecification: procedureBody;
-
-nestedQuerySpecification:
-	LEFT_BRACE querySpecification RIGHT_BRACE;
-
-querySpecification: procedureBody;
-
-nestedFunctionSpecification:
-	LEFT_BRACE functionSpecification RIGHT_BRACE;
-
-functionSpecification: procedureBody;
-
-procedureBody:
-	staticVariableDefinitionBlock? bindingVariableDefinitionBlock? statementBlock;
-
-staticVariableDefinitionBlock: staticVariableDefinition+;
-
-bindingVariableDefinitionBlock: bindingVariableDefinition+;
-
-statementBlock: statement ( thenStatement+)?;
-
-thenStatement: THEN (yieldClause)? statement;
-
-staticVariableDefinition:
-	procedureVariableDefinition
-	| queryVariableDefinition
-	| functionVariableDefinition;
-
-procedureVariableDefinition: (CATALOG)? PROCEDURE identifier ofTypeSignature procedureInitializer;
-
-procedureInitializer:
-	AS_OR_EQUALS procedureReference
-	| AS? nestedProcedureSpecification
-	| COLON catalogProcedureReference;
-
-queryVariableDefinition:
-	QUERY identifier ofTypeSignature queryInitializer;
-
-queryInitializer:
-	AS_OR_EQUALS (queryResolutionExpression | qualifiedQueryName)
-	| AS? nestedQuerySpecification
-	| COLON catalogQueryReference;
-
-functionVariableDefinition:
-	FUNCTION regularIdentifier ofTypeSignature functionInitializer;
-
-functionInitializer: (AS | EQUALS) (
-		functionResolutionExpression
-		| qualifiedFunctionName
-	)
-	| nestedFunctionSpecification
-	| COLON catalogFunctionReference;
-
-compactVariableDeclarationList:
-	compactVariableDeclaration (COMMA compactVariableDeclaration)*;
-
-compactVariableDeclaration:
-	bindingVariableDeclaration
-	| regularIdentifier;
-
-bindingVariableDeclaration:
-	graphVariableDeclaration
-	| bindingTableVariableDeclaration
-	| valueVariableDeclaration;
-
-compactVariableDefinitionList:
-	compactVariableDefinition (COMMA compactVariableDefinition)*;
-
-compactVariableDefinition:
-	compactValueVariableDefinition
-	| bindingVariableDefinition;
-
-compactValueVariableDefinitionList:
-	compactValueVariableDefinition (
-		COMMA compactValueVariableDefinition
-	)*;
-
-compactValueVariableDefinition:
-	regularIdentifier EQUALS valueExpression;
-
-bindingVariableDefinitionList:
-	bindingVariableDefinition (COMMA bindingVariableDefinition)*;
-
-bindingVariableDefinition:
-	graphVariableDefinition
-	| bindingTableVariableDefinition
-	| valueVariableDefinition;
-
-parameterDefinition:
-	graphParameterDefinition
-	| bindingTableParameterDefinition
-	| valueParameterDefinition;
-
-graphVariableDeclaration:
-	PROPERTY? GRAPH graphVariable ofGraphType;
-
-graphVariableDefinition:
-	PROPERTY? GRAPH graphVariable ofGraphType graphInitializer;
-
-graphParameterDefinition:
-	PROPERTY? GRAPH parameterName IF_NOT_EXISTS? ofGraphType graphInitializer;
-
-graphVariable: regularIdentifier;
-
-graphInitializer: (AS | EQUALS) graphExpression
-	| nestedGraphQuerySpecification
-	| COLON catalogGraphReference;
-
-bindingTableVariableDeclaration:
-	BINDING? TABLE bindingTableVariable ofBindingTableType;
-
-bindingTableVariableDefinition:
-	BINDING? TABLE bindingTableVariable ofBindingTableType bindingTableInitializer;
-
-bindingTableParameterDefinition:
-	BINDING? TABLE identifier IF_NOT_EXISTS? ofBindingTableType bindingTableInitializer;
-
-bindingTableVariable: regularIdentifier;
-
-bindingTableInitializer: (AS | EQUALS) bindingTableReference
-	| nestedQuerySpecification
-	| COLON catalogBindingTableReference;
-
-valueVariableDeclaration: VALUE regularIdentifier ofValueType?;
-
-valueVariableDefinition:
-	VALUE regularIdentifier ofValueType? valueInitializer;
-
-valueParameterDefinition:
-	VALUE identifier IF_NOT_EXISTS? ofValueType? valueInitializer;
-
-valueInitializer: (AS | EQUALS) valueExpression
-	| nestedFunctionSpecification
-	| COLON catalogObjectReference;
-
-primaryResultObjectExpression:
-	graphExpression
-	| bindingTableReference;
-
-graphExpression:
-	copyGraphExpression
-	| graphSpecification
-	| graphReference;
-
-copyGraphExpression: COPY OF graphExpression;
-
-graphTypeExpression:
-	copyGraphTypeExpression
-	| likeGraphExpression
-	| graphTypeSpecification
-	| graphTypeReference;
-
-asGraphType:
-	AS_OR_EQUALS graphTypeExpression
-	| likeGraphExpressionShorthand
-	| AS nestedGraphTypeSpecification;
-
-copyGraphTypeExpression: COPY OF graphTypeReference;
-
-likeGraphExpression:
-	PROPERTY GRAPH TYPE likeGraphExpressionShorthand;
-
-ofGraphType:
-	ofTypePrefix graphTypeExpression
-	| likeGraphExpressionShorthand
-	| ofTypePrefix nestedGraphTypeSpecification;
-
-likeGraphExpressionShorthand: LIKE graphExpression;
-
-ofBindingTableType:
-	ofTypePrefix bindingTableTypeExpression
-	| likeBindingTableShorthand;
-
-ofTypePrefix: DOUBLE_COLON | OF;
-
-bindingTableTypeExpression:
-	bindingTableType
-	| likeBindingTableType;
-
-bindingTableType: BINDING? TABLE recordValueType;
-
-likeBindingTableType: BINDING? TABLE likeBindingTableShorthand;
-
-likeBindingTableShorthand: LIKE bindingTableReference;
-
-statement:
-	atSchemaClause (
-		linearCatalogModifyingStatement
-		| dataModifyingStatement
-		| queryStatement
-	);
-
-dataModifyingStatement:
-	conditionalDataModifyingStatement
-	| linearDataModifyingStatement;
-
-queryStatement:
-	compositeQueryExpression
-	| conditionalQueryStatement;
-
-callProcedureStatement: statementMode CALL procedureCall;
-
-statementMode: OPTIONAL | MANDATORY;
-
-simpleCatalogModifyingStatement:
-	primitiveCatalogModifyingStatement
-	| callCatalogModifyingProcedureStatement;
-
-primitiveCatalogModifyingStatement:
-	createGraphStatement
-	| createGraphTypeStatement
-	| createProcedureStatement
-	| createQueryStatement
-	| createFunctionStatement
-	| dropGraphStatement
-	| dropGraphTypeStatement
-	| dropProcedureStatement
-	| dropQueryStatement
-	| dropFunctionStatement;
-
-simpleDataAccessingStatement:
-	simpleQueryStatement
-	| simpleDataModifyingStatement;
-
-simpleDataModifyingStatement:
-	primitiveDataModifyingStatement
-	| doStatement
-	| callProcedureStatement;
-
-primitiveDataModifyingStatement:
-	insertStatement
-	| mergeStatement
-	| setStatement
-	| removeStatement
-	| deleteStatement;
-
-simpleQueryStatement:
-	simpleDataTransformingStatement
-	| simpleDataReadingStatement;
-
-simpleDataReadingStatement: matchStatement | callQueryStatement;
-
-simpleDataTransformingStatement:
-	primitiveDataTransformingStatement
-	| callFunctionStatement;
-
-primitiveDataTransformingStatement:
-	optionalStatement
-	| mandatoryStatement
-	| letStatement
-	| forStatement
-	| aggregateStatement
-	| filterStatement
-	| orderByAndPageStatement;
-
-linearCatalogModifyingStatement:
-	simpleCatalogModifyingStatement*;
-
-createSchemaStatement:
-	CREATE SCHEMA catalogSchemaParentAndName (IF_NOT_EXISTS)?;
-
-dropSchemaStatement:
-	DROP SCHEMA catalogSchemaParentAndName (IF_EXISTS)?;
-
-createGraphStatement: (CREATE | OR REPLACE) PROPERTY? GRAPH catalogGraphParentAndName IF_NOT_EXISTS?
-		(
-		ofGraphType
-		| graphSource
+	sessionSetGraphParameterClause
+	| sessionSetBindingTableParameterCalues
+	| sessionSetValuesParameterClause;
+
+sessionSetGraphParameterClause:
+	(PROPERTY separator)? GRAPH sessionSetParameterName optTypedGraphInit;
+
+sessionSetBindingTableParameterCalues:
+	(BINDING separator)? TABLE sessionSetParameterName optTypedBindingTableInit;
+
+sessionSetValuesParameterClause:
+	VALUE sessionSetParameterName optTypedValueInit;
+
+sessionSetParameterName:
+	parameterName (separator IF_NOT_EXISTS)?;
+
+sessionResetCommand:
+	(SESSION separator)? RESET separator sessionResetArguments;
+
+sessionResetArguments:
+	(ALL separator)? (PARAMETERS | CHARACTERISTICS)
+	| SCHEMA
+	| (PROPERTY separator)? GRAPH
+	| TIME separator ZONE
+	| PARAMETER separator parameterName;
+
+sessionCloseCommand: SESSION? separator CLOSE;
+
+// transaction grammar
+transactionActivity:
+	transactionStartCommand (
+		separator procedureSpec (separator transactionEndCommand)?
+	)?
+	| procedureSpec (separator transactionEndCommand)?
+	| transactionEndCommand;
+
+transactionStartCommand:
+	START separator TRANSACTION (
+		separator transactionCharacteristics
 	)?;
 
-graphSource: AS copyGraphExpression;
+transactionEndCommand: ROLLBACK | COMMIT;
 
-graphSpecification:
-	PROPERTY? GRAPH (
-		nestedGraphQuerySpecification
-		| nestedAmbientDataModifyingProcedureSpecification
+transactionCharacteristics:
+	transactionMode separator? (
+		COMMA separator? transactionMode separator?
+	)+;
+
+transactionMode: transactionAccessMode | implDefinedAccessMode;
+
+transactionAccessMode:
+	READ separator ONLY
+	| READ separator WRITE;
+
+implDefinedAccessMode:;
+
+// procedures grammar
+nestedProcedureSpec:
+	LEFT_BRACE separator? procedureSpec separator? RIGHT_BRACE;
+
+procedureSpec: procedureBody;
+
+nestedDataModProcedureSpec:
+	LEFT_BRACE separator? procedureBody separator? RIGHT_BRACE;
+
+nestedQuerySpec:
+	LEFT_BRACE separator? procedureBody separator? RIGHT_BRACE;
+
+procedureBody:
+	(atSchemaClause separator)? (bindingVarDefBlock separator)? statmentBlock;
+
+bindingVarDefBlock: (bindingVarDef separator?)+;
+
+bindingVarDef: graphVarDef | bindingTableVarDef | valueVarDef;
+
+statmentBlock: statement (separator nextStatment)*;
+
+statement:
+	linearCatalogModStatment
+	| linearDataModStatment
+	| compositeQueryStatment;
+
+nextStatment: NEXT (separator yieldClause)? separator statement;
+
+// var def grammar
+graphVarDef:
+	(PROPERTY separator)? GRAPH separator graphVar optTypedGraphInit;
+
+optTypedGraphInit:
+	(((typed separator)? graphRefValueType) separator)? graphInit;
+
+graphInit: EQUALS separator? graphExpr;
+
+bindingTableVarDef:
+	(BINDING separator)? TABLE separator bindingTableVar separator optTypedBindingTableInit;
+
+optTypedBindingTableInit:
+	(((typed separator)? bindingTableRefValueType) separator)? bindingTableInit;
+
+bindingTableInit: EQUALS separator? bindingTableExpr;
+
+valueVarDef:
+	VALUE separator valueVar separator optTypedValueInit;
+
+optTypedValueInit:
+	(((typed separator)? valueType) separator)? valueInit;
+
+valueInit: EQUALS separator valueExpr;
+
+// object expressions grammar
+graphExpr:
+	nestedGraphQuerySpec
+	| objectExprPrimary
+	| graphRef
+	| objectNameOrBindingVar
+	| currentGraph;
+
+currentGraph: CURRENT_PROPERTY_GRAPH | CURRENT_GRAPH;
+
+nestedGraphQuerySpec: nestedQuerySpec;
+
+bindingTableExpr:
+	nestedBindingTableQuerySpec
+	| objectExprPrimary
+	| bindingTableRef
+	| objectNameOrBindingVar;
+
+nestedBindingTableQuerySpec: nestedQuerySpec;
+
+objectExprPrimary:
+	VARIABLE separator valueExprPrimary
+	| parenthesizedValueExpr
+	| propertyRef
+	| unsignedValueSpec
+	| aggregateFunction
+	| collectionValueConstructor
+	| valueQueryExpr
+	| caseExpr;
+
+// catalog-mod statments grammar
+linearCatalogModStatment: (simpleCatalogModStatment)+;
+
+simpleCatalogModStatment:
+	primitiveCatalogModStatment
+	| callCatalogModProcedureStatment;
+
+primitiveCatalogModStatment:
+	createSchemeStatment
+	| createGraphStatment
+	| createGraphTypeStatment
+	| dropSchemeStatment
+	| dropGraphStatment
+	| dropGraphTypeStatment;
+
+createSchemeStatment:
+	CREATE separator SCHEMA (separator IF_NOT_EXISTS)? separator catalogSchemaParentAndName;
+
+dropSchemeStatment:
+	DROP separator SCHEMA (separator IF_EXISTS)? separator catalogSchemaParentAndName;
+
+createGraphStatment:
+	createOnlyGraphStatment
+	| createOrReplaceGraphStatment;
+
+createOnlyGraphStatment:
+	CREATE separator (PROPERTY separator)? GRAPH (
+		separator IF_NOT_EXISTS
+	)? separator catalogGraphParentAndName separator (
+		openGraphType
+		| ofGraphType
+	) (separator graphSource)?;
+
+createOrReplaceGraphStatment:
+	CREATE separator OR separator REPLACE (separator PROPERTY)? separator GRAPH separator
+		catalogGraphParentAndName separator (
+		openGraphType
+		| ofGraphType
+	) (separator graphSource)?;
+
+openGraphType:
+	OPEN ((separator PROPERTY)? separator GRAPH)? separator TYPE;
+
+ofGraphType:
+	graphTypeLikeGraph
+	| (typed)? graphTypeRef
+	| (typed)? nestedGraphTypeSpec;
+
+graphTypeLikeGraph: LIKE separator graphExpr;
+
+graphSource: AS separator COPY separator OF separator graphExpr;
+
+dropGraphStatment:
+	DROP (separator PROPERTY)? separator GRAPH (
+		separator IF_EXISTS
+	)? separator catalogGraphParentAndName;
+
+createGraphTypeStatment:
+	CREATE separator (
+		(
+			(PROPERTY separator)? GRAPH separator TYPE (
+				separator IF_NOT_EXISTS
+			)?
+		)
+		| (
+			OR separator REPLACE (separator PROPERTY)? separator GRAPH separator TYPE
+		)
+	) separator catalogGraphTypeParentAndName separator graphTypeSource;
+
+graphTypeSource:
+	(AS separator)? copyOfGraphType
+	| graphTypeLikeGraph
+	| (AS separator)? nestedGraphTypeSpec;
+
+copyOfGraphType:
+	COPY separator OF separator (
+		graphTypeRef
+		| externalObjectRef
 	);
 
-nestedGraphQuerySpecification: nestedQuerySpecification;
+dropGraphTypeStatment:
+	DROP (separator PROPERTY)? separator GRAPH separator TYPE (
+		separator IF_EXISTS
+	)? separator catalogGraphTypeParentAndName;
 
-nestedAmbientDataModifyingProcedureSpecification:
-	nestedDataModifyingProcedureSpecification;
+callCatalogModProcedureStatment: callProcedureStatment;
 
-dropGraphStatement:
-	DROP GRAPH catalogGraphParentAndName (IF_EXISTS)?;
+// data mod statments grammar
+linearDataModStatment:
+	focusedLinearDataModStatment
+	| ambientLinearDataModStatment;
 
-createGraphTypeStatement: (CREATE | OR REPLACE) PROPERTY? GRAPH TYPE catalogGraphTypeParentAndName
-		IF_NOT_EXISTS? graphTypeInitializer;
+focusedLinearDataModStatment:
+	focusedLinearDataModStatmentBody
+	| focusedNestedDataModProcedureSpec;
 
-graphTypeInitializer:
-	asGraphType
-	| COLON catalogGraphTypeReference;
+focusedLinearDataModStatmentBody:
+	useGraphClause separator simpleLinearDataAccessingStatment (
+		separator primitiveResultStatment
+	)?;
 
-graphTypeSpecification:
-	PROPERTY? GRAPH TYPE nestedGraphTypeSpecification;
+focusedNestedDataModProcedureSpec:
+	useGraphClause separator nestedDataModProcedureSpec;
 
-nestedGraphTypeSpecification:
-	LEFT_BRACE graphTypeSpecificationBody RIGHT_BRACE;
+ambientLinearDataModStatment:
+	ambientLinearDataModStatmentBody
+	| nestedDataModProcedureSpec;
 
-graphTypeSpecificationBody: elementTypeDefinitionList;
+ambientLinearDataModStatmentBody:
+	simpleLinearDataAccessingStatment (
+		separator primitiveResultStatment
+	)?;
 
-elementTypeDefinitionList:
-	elementTypeDefinition (COMMA elementTypeDefinition)*;
+simpleLinearDataAccessingStatment: simpleDataAccessingStatment+;
 
-elementTypeDefinition: nodeTypeDefinition | edgeTypeDefinition;
+simpleDataAccessingStatment:
+	simpleQueryStatment
+	| simpleDataModStatment;
 
-nodeTypeDefinition:
-	LEFT_PAREN identifier? nodeTypeFiller? RIGHT_PAREN
-	| nodeSynonym TYPE identifier nodeTypeFiller;
+simpleDataModStatment:
+	primitiveDataModStatment
+	| callDataModProcedureStatment;
 
-nodeTypeFiller:
-	nodeTypeLabelSetDefinition
-	| nodeTypePropertyTypeSetDefinition
-	| nodeTypeLabelSetDefinition nodeTypePropertyTypeSetDefinition;
+primitiveDataModStatment:
+	insertStatment
+	| setStatment
+	| removeStatment
+	| deleteStatment;
 
-nodeTypeLabelSetDefinition: labelSetDefinition;
+insertStatment: INSERT separator insertGraphPattern;
 
-nodeTypePropertyTypeSetDefinition: propertyTypeSetDefinition;
+setStatment: SET separator setItemList;
 
-edgeTypeDefinition:
-	fullEdgeTypePattern
-	| abbreviatedEdgeTypePattern
-	| edgeKind edgeSynonym TYPE identifier edgeTypeFiller endpointDefinition;
-
-edgeTypeFiller:
-	edgeTypeLabelSetDefinition
-	| edgeTypePropertyTypeSetDefinition
-	| edgeTypeLabelSetDefinition edgeTypePropertyTypeSetDefinition;
-
-edgeTypeLabelSetDefinition: labelSetDefinition;
-
-edgeTypePropertyTypeSetDefinition: propertyTypeSetDefinition;
-
-fullEdgeTypePattern:
-	fullEdgeTypePatternPointingRight
-	| fullEdgeTypePatternPointingLeft
-	| fullEdgeTypePatternAnyDirection;
-
-fullEdgeTypePatternPointingRight:
-	sourceNodeTypeReference arcTypePointingRight destinationNodeTypeReference;
-
-fullEdgeTypePatternPointingLeft:
-	destinationNodeTypeReference arcTypePointingLeft sourceNodeTypeReference;
-
-fullEdgeTypePatternAnyDirection:
-	sourceNodeTypeReference arcTypeAnyDirection destinationNodeTypeReference;
-
-arcTypePointingRight:
-	LEFT_ARROW_MIUNUS arcTypeFiller MINUS_RIGHT_ARROW;
-
-arcTypePointingLeft:
-	LEFT_ARROW_MIUNUS arcTypeFiller MINUS_RIGHT_ARROW;
-
-arcTypeAnyDirection:
-	TILDE_LEFT_BRACKET arcTypeFiller RIGHT_ARROW_TILDE;
-
-arcTypeFiller: identifier? edgeTypeFiller?;
-
-abbreviatedEdgeTypePattern:
-	abbreviatedEdgeTypePatternPointingRight
-	| abbreviatedEdgeTypePatternPointingLeft
-	| abbreviatedEdgeTypePatternAnyDirection;
-
-abbreviatedEdgeTypePatternPointingRight:
-	sourceNodeTypeReference MINUS_RIGHT_ARROW destinationNodeTypeReference;
-
-abbreviatedEdgeTypePatternPointingLeft:
-	destinationNodeTypeReference LEFT_ARROW_MIUNUS sourceNodeTypeReference;
-
-abbreviatedEdgeTypePatternAnyDirection:
-	sourceNodeTypeReference TILDE destinationNodeTypeReference;
-
-sourceNodeTypeReference:
-	LEFT_PAREN identifier RIGHT_PAREN
-	| LEFT_PAREN nodeTypeFiller? RIGHT_PAREN;
-
-destinationNodeTypeReference:
-	LEFT_PAREN identifier RIGHT_PAREN
-	| LEFT_PAREN nodeTypeFiller? RIGHT_PAREN;
-
-edgeKind: DIRECTED | UNDIRECTED;
-
-endpointDefinition: CONNECTING endpointPairDefinition;
-
-endpointPairDefinition:
-	endpointPairDefinitionPointingRight
-	| endpointPairDefinitionPointingLeft
-	| endpointPairDefinitionAnyDirection
-	| abbreviatedEdgeTypePattern;
-
-endpointPairDefinitionPointingRight:
-	LEFT_PAREN identifier connectorPointingRight identifier RIGHT_PAREN;
-
-endpointPairDefinitionPointingLeft:
-	LEFT_PAREN identifier LEFT_ARROW_MIUNUS identifier RIGHT_PAREN;
-
-endpointPairDefinitionAnyDirection:
-	LEFT_PAREN identifier connectorAnyDirection identifier RIGHT_PAREN;
-
-connectorPointingRight: TO | MINUS_RIGHT_ARROW;
-
-connectorAnyDirection: TO | TILDE;
-
-labelSetDefinition:
-	LABEL identifier
-	| LABELS labelExpression
-	| isLabelExpression;
-
-propertyTypeSetDefinition:
-	LEFT_BRACE propertyTypeDefinitionList? RIGHT_BRACE;
-
-propertyTypeDefinitionList:
-	propertyTypeDefinition (COMMA propertyTypeDefinition)*;
-
-propertyTypeDefinition: identifier identifier;
-
-dropGraphTypeStatement:
-	DROP PROPERTY? GRAPH TYPE catalogGraphTypeParentAndName IF_EXISTS?;
-
-createProcedureStatement: (CREATE | OR REPLACE) PROCEDURE catalogProcedureParentAndName
-		ofTypeSignature IF_NOT_EXISTS? procedureInitializer;
-
-dropProcedureStatement:
-	DROP PROCEDURE catalogProcedureParentAndName IF_EXISTS?;
-
-createQueryStatement: (CREATE | OR REPLACE) QUERY catalogQueryParentAndName ofTypeSignature
-		IF_NOT_EXISTS? queryInitializer;
-
-dropQueryStatement:
-	DROP QUERY catalogQueryParentAndName IF_EXISTS?;
-
-createFunctionStatement: (CREATE | OR REPLACE) FUNCTION catalogFunctionParentAndName ofTypeSignature
-		IF_NOT_EXISTS? functionInitializer;
-
-dropFunctionStatement:
-	DROP FUNCTION catalogFunctionParentAndName IF_EXISTS?;
-
-callCatalogModifyingProcedureStatement: callProcedureStatement;
-
-linearDataModifyingStatement:
-	focusedLinearDataModifyingStatement
-	| ambientLinearDataModifyingStatement;
-
-focusedLinearDataModifyingStatement:
-	useGraphClause focusedLinearDataModifyingStatementBody+;
-
-focusedLinearDataModifyingStatementBody:
-	simpleLinearQueryStatement (
-		useGraphClause simpleLinearQueryStatement
-	)* simpleDataModifyingStatement simpleDataAccessingStatement (
-		useGraphClause simpleDataAccessingStatement
-	)* primitiveResultStatement
-	| nestedDataModifyingProcedureSpecification;
-
-ambientLinearDataModifyingStatement:
-	simpleLinearQueryStatement simpleDataModifyingStatement simpleDataAccessingStatement
-		primitiveResultStatement
-	| nestedDataModifyingProcedureSpecification;
-
-conditionalDataModifyingStatement:
-	whenThenLinearDataModifyingStatementBranch+ elseLinearDataModifyingStatementBranch?;
-
-whenThenLinearDataModifyingStatementBranch:
-	whenClause THEN linearDataModifyingStatement
-	| whenClause nestedDataModifyingProcedureSpecification;
-
-elseLinearDataModifyingStatementBranch:
-	ELSE linearDataModifyingStatement;
-
-whenClause: WHEN searchCondition;
-
-doStatement: DO nestedDataModifyingProcedureSpecification;
-
-insertStatement:
-	INSERT simpleGraphPattern
-	| OPTIONAL INSERT simpleGraphPattern whenClause?;
-
-mergeStatement: MERGE simpleGraphPattern;
-
-setStatement: SET setItemList whenClause?;
-
-setItemList: setItem (COMMA setItem)*;
+setItemList:
+	setItem separator? (COMMA separator? setItem separator?)+;
 
 setItem: setPropertyItem | setAllPropertiesItem | setLabelItem;
 
 setPropertyItem:
-	identifier PERIOD identifier EQUALS valueExpression;
+	bindingVarRef separator? PERIOD separator? propertyName separator? EQUALS separator? valueExpr;
 
-setAllPropertiesItem: identifier EQUALS valueExpression;
+setAllPropertiesItem:
+	bindingVarRef separator? EQUALS separator LEFT_BRACE (
+		separator propertyKeyValuePairList
+	)? separator? RIGHT_BRACE;
 
-setLabelItem: labelSetExpression;
+setLabelItem: bindingVarRef (IS | COLON) labelSetSpec;
 
-labelSetExpression:
-	AMPERSAND identifier+ (AMPERSAND identifier+)*;
+labelSetSpec:
+	labelName (separator? AMPERSAND separator? labelName)*;
 
-removeStatement: REMOVE removeItemList whenClause?;
+removeStatment: REMOVE separator removeItemList;
 
-removeItemList: removeItem (COMMA removeItem)*;
+removeItemList:
+	removeItem separator (COMMA separator? removeItem separator?)+;
 
 removeItem: removePropertyItem | removeLabelItem;
 
-removePropertyItem: identifier PERIOD identifier;
+removePropertyItem: bindingVarRef PERIOD propertyName;
 
-removeLabelItem: identifier COLON labelSetExpression;
+removeLabelItem:
+	bindingVarRef separator (IS | COLON) separator labelSetSpec;
 
-deleteStatement: DETACH? DELETE deleteItemList whenClause?;
+deleteStatment:
+	(DETACH | NODETACH) separator DELETE separator deleteItemList;
 
-deleteItemList: valueExpression (COMMA valueExpression)*;
+deleteItemList:
+	deleteItem separator? (
+		COMMA separator? deleteItem separator?
+	)+;
 
-compositeQueryStatement: compositeQueryExpression;
+deleteItem: valueExpr;
 
-conditionalQueryStatement:
-	whenThenLinearQueryBranch+ (elseLinearQueryBranch)?;
+callDataModProcedureStatment: callProcedureStatment;
 
-whenThenLinearQueryBranch:
-	whenClause THEN linearQueryStatement
-	| whenClause nestedQuerySpecification;
+// query statments grammar
+compositeQueryStatment: compositeQueryExpr;
 
-elseLinearQueryBranch: ELSE linearQueryStatement;
-
-compositeQueryExpression:
-	compositeQueryExpression queryConjunction linearQueryStatement
-	| linearQueryStatement;
+compositeQueryExpr:
+	compositeQueryExpr separator queryConjunction separator compositeQueryPrimary
+	| compositeQueryPrimary;
 
 queryConjunction: setOperator | OTHERWISE;
 
 setOperator:
-	UNION (setQuantifier)?
-	| EXCEPT (setQuantifier)?
-	| INTERSECT (setQuantifier)?;
+	(UNION | EXCEPT | INTERSECT) separator setQuantifier;
 
-linearQueryStatement:
-	focusedLinearQueryStatement
-	| ambientLinearQueryStatement;
+compositeQueryPrimary: linearQueryStatment;
 
-ambientLinearQueryStatement:
-	simpleLinearQueryStatement simpleDataAccessingStatement simpleDataAccessingStatement
-		primitiveResultStatement
-	| nestedQuerySpecification;
+linearQueryStatment:
+	focusedLinearQueryStatment
+	| ambientLinearQueryStatment;
 
-focusedLinearQueryStatement:
-	fromGraphClause focusedLinearQueryStatementBody
-	| selectStatement;
+focusedLinearQueryStatment:
+	(focusedLinearQueryStatmentPart separator)+ focusedLinearQueryAndPrimitiveResultStatmentPart
+	| focusedPrimitiveResultStatment
+	| focusedNestedQuerySpec
+	| selectStatment;
 
-focusedLinearQueryStatementBody: (
-		simpleLinearQueryStatement (
-			fromGraphClause simpleLinearQueryStatement
-		)*
-	) primitiveResultStatement
-	| nestedQuerySpecification;
+focusedLinearQueryStatmentPart:
+	useGraphClause separator simpleLinearQueryStatment;
 
-simpleLinearQueryStatement: simpleQueryStatement;
+focusedLinearQueryAndPrimitiveResultStatmentPart:
+	useGraphClause separator simpleLinearQueryStatment separator primitiveResultStatment;
 
-matchStatement: (statementMode)? MATCH graphPattern;
+focusedPrimitiveResultStatment:
+	useGraphClause separator primitiveResultStatment;
 
-callQueryStatement: callProcedureStatement;
+focusedNestedQuerySpec:
+	useGraphClause separator nestedQuerySpec;
 
-mandatoryStatement: MANDATORY procedureCall;
+ambientLinearQueryStatment:
+	(simpleLinearQueryStatment separator)? primitiveResultStatment
+	| nestedQuerySpec;
 
-optionalStatement: OPTIONAL procedureCall;
+simpleLinearQueryStatment:
+	simpleQueryStatment (separator simpleQueryStatment)*;
 
-filterStatement: FILTER (whereClause | searchCondition);
+simpleQueryStatment: primitiveQueryStatment | callQueryStatment;
 
-letStatement:
-	LET compactVariableDefinitionList
-	| statementMode LET compactVariableDefinitionList whereClause;
+primitiveQueryStatment:
+	matchStatment
+	| letStatment
+	| forStatment
+	| filterStatment
+	| orderByAndPageStatment;
 
-aggregateStatement:
-	AGGREGATE compactValueVariableDefinitionList whereClause;
+matchStatment: simpleMatchStatment | optionalMatchStatment;
 
-forStatement:
-	statementMode? FOR forItemList forOrdinalityOrIndex? whereClause?;
+simpleMatchStatment: MATCH separator graphPatternBindingTable;
 
-forItemList: forItem (AND forItem)*;
+optionalMatchStatment: OPTIONAL separator optionalOperand;
 
-forItem: forItemAlias collectionValueExpression;
+optionalOperand:
+	simpleMatchStatment
+	| LEFT_BRACE separator? matchStatmentBlock separator? RIGHT_BRACE
+	| LEFT_PAREN separator? matchStatmentBlock separator? RIGHT_PAREN;
 
-forItemAlias: identifier IN;
+matchStatmentBlock: (separator? matchStatment)+;
 
-forOrdinalityOrIndex: WITH (ORDINALITY | INDEX) (identifier)?;
+callQueryStatment: callProcedureStatment;
 
-orderByAndPageStatement: (
-		orderByClause (offsetClause limitClause?)?
+filterStatment:
+	FILTER separator (whereClause | searchCondition);
+
+letStatment: LET separator letVarDefList;
+
+letVarDefList:
+	letVarDef separator? (COMMA separator? letVarDef separator?)+;
+
+letVarDef:
+	valueVarDef
+	| valueVar separator? EQUALS separator? valueExpr;
+
+forStatment:
+	FOR separator forItem separator? forOrdinalityOrOffset?;
+
+forItem: forItemAlias separator listValueExpr;
+
+forItemAlias: identifier separator IN;
+
+forOrdinalityOrOffset:
+	WITH separator (ORDINALITY | OFFSET) separator identifier;
+
+orderByAndPageStatment:
+	orderByClause (separator offsetClause)? (
+		separator limitClause
 	)?
-	| (offsetClause limitClause?)?
+	| offsetClause (separator limitClause)?
 	| limitClause;
 
-callFunctionStatement: callProcedureStatement;
+primitiveResultStatment:
+	returnStatment (separator orderByAndPageStatment)?
+	| FINISH;
 
-primitiveResultStatement: (
-		returnStatement orderByAndPageStatement
+returnStatment: RETURN separator returnStatmentBody;
+
+returnStatmentBody:
+	(setQuantifier separator)? (ASTERISK | returnItemList) (
+		separator groupByClause
 	)?
-	| projectStatement
-	| END;
+	| NO separator BINDINGS;
 
-returnStatement: RETURN returnStatementBody;
+returnItemList:
+	returnItem (separator? COMMA separator? returnItem)*;
 
-returnStatementBody:
-	setQuantifier? (ASTERISK | returnItemList) groupByClause?;
+returnItem: aggregatingValueExpr (separator returnItemAlias)?;
 
-returnItemList: returnItem (COMMA returnItem)*;
+returnItemAlias: AS separator identifier;
 
-returnItem: (valueExpression returnItemAlias?);
+selectStatment:
+	SELECT separator? setQuantifier? separator (
+		selectItemList
+		| ASTERISK
+	) (
+		separator selectStatmentBody (separator whereClause)? (
+			separator groupByClause
+		)? (separator havingClause)? (separator orderByClause)? (
+			separator offsetClause
+		)? (separator limitClause)?
+	)?;
 
-returnItemAlias: AS identifier;
+selectItemList:
+	selectItem separator? (
+		COMMA separator? selectItem separator?
+	)+;
 
-selectStatement:
-	SELECT setQuantifier? selectItemList selectStatementBody whereClause? groupByClause?
-		havingClause? orderByClause? (offsetClause limitClause?)?;
+selectItem: aggregatingValueExpr (separator selectItemAlias)?;
 
-selectItemList: selectItem (COMMA selectItem)*;
-
-selectItem: (valueExpression selectItemAlias?);
-
-selectItemAlias: AS identifier;
+selectItemAlias: AS separator identifier;
 
 havingClause: HAVING searchCondition;
 
-selectStatementBody: (FROM selectGraphMatchList)
-	| (selectQuerySpecification);
+selectStatmentBody: FROM selectGraphMatchList | selectQuerySpec;
 
 selectGraphMatchList:
-	selectGraphMatch (COMMA selectGraphMatch)*;
+	selectGraphMatch (
+		separator? COMMA separator? selectGraphMatch
+	)*;
 
-selectGraphMatch: graphExpression matchStatement;
+selectGraphMatch: graphExpr separator matchStatment;
 
-selectQuerySpecification:
-	FROM nestedQuerySpecification
-	| fromGraphClause nestedQuerySpecification;
+selectQuerySpec:
+	FROM separator nestedQuerySpec
+	| FROM separator graphExpr separator nestedQuerySpec;
 
-projectStatement: PROJECT valueExpression;
+// common statments grammar
+callProcedureStatment: (OPTIONAL separator)? CALL procedureCall;
 
-fromGraphClause: FROM graphExpression;
+procedureCall: inlineProcedureCall | namedProcedureCall;
 
-useGraphClause: USE graphExpression;
+inlineProcedureCall:
+	(varScopeClause separator)? nestedProcedureSpec;
 
-atSchemaClause: AT schemaReference;
+varScopeClause:
+	LEFT_PAREN separator? bindingVarRefList? separator? RIGHT_PAREN;
 
-ofTypeSignature: (ofTypePrefix typeSignature)?;
+bindingVarRefList:
+	bindingVarRef separator? (
+		COMMA separator? bindingVarRef separator?
+	)+;
 
-typeSignature: (
-		parenthesizedFormalParameterList (
-			ofTypePrefix procedureResultType
-		)?
-	);
+namedProcedureCall:
+	procedureRef separator LEFT_PAREN separator? procedureArgList? separator? RIGHT_PAREN;
 
-parenthesizedFormalParameterList:
-	LEFT_PAREN formalParameterList RIGHT_PAREN;
+procedureArgList:
+	procedureArg separator? (
+		COMMA separator? procedureArg separator?
+	)+;
 
-formalParameterList: (
-		mandatoryFormalParameterList (
-			COMMA optionalFormalParameterList
-		)?
-	)?
-	| optionalFormalParameterList;
+procedureArg: valueExpr;
 
-mandatoryFormalParameterList: formalParameterDeclarationList;
+// common elements grammar
+useGraphClause: USE separator graphExpr;
 
-optionalFormalParameterList:
-	OPTIONAL formalParameterDefinitionList;
+atSchemaClause: AT separator schemaRef;
 
-formalParameterDeclarationList:
-	formalParameterDeclaration (COMMA formalParameterDeclaration)*;
+bindingVarRef: bindingVar;
 
-formalParameterDeclaration: (
-		parameterCardinality compactVariableDeclaration
-	);
+elementVarRef: bindingVarRef;
 
-formalParameterDefinitionList:
-	formalParameterDefinition (COMMA formalParameterDefinition)*;
+pathVarRef: bindingVarRef;
 
-formalParameterDefinition: (
-		parameterCardinality compactVariableDefinition
-	);
+parameter: parameterName;
 
-parameterCardinality: (SINGLE | MULTI | MULTIPLE);
+graphPatternBindingTable:
+	graphPattern (separator graphPatternYieldClause)?;
 
-procedureResultType: valueType;
+graphPatternYieldClause: YIELD graphPatternYieldItemList;
 
-graphPattern: (
-		pathPatternList (
-			keepClause graphPatternWhereClause? yieldClause?
-		)?
-	);
+graphPatternYieldItemList:
+	graphPatternYieldItem separator? (
+		COMMA separator? graphPatternYieldItem separator?
+	)+;
 
-pathPatternList: pathPattern (COMMA pathPattern)*;
+graphPatternYieldItem: elementVarRef separator pathVarRef;
 
-pathPattern: (
-		(regularIdentifier EQUALS)? (
-			pathPatternPrefix pathPatternExpression
-		)
-	);
+graphPattern:
+	(matchMode separator)? pathPatternList (separator keepClause)? (
+		separator graphPatternWhereClause
+	)?;
 
-keepClause: KEEP pathPatternPrefix;
+matchMode:
+	repeatableElementsMatchMode
+	| differentEdgesMatchMode;
 
-graphPatternWhereClause: WHERE searchCondition;
+repeatableElementsMatchMode:
+	REPEATABLE separator elementBindingsOrElements;
 
-pathPatternExpression:
+differentEdgesMatchMode: DIFFERENT edgeBindingsOrEdges;
+
+elementBindingsOrElements:
+	ELEMENT (separator BINDINGS)?
+	| ELEMENTS;
+
+edgeBindingsOrEdges:
+	edgeSynonym (separator BINDINGS)?
+	| edgesSynonym;
+
+pathPatternList:
+	pathPattern (separator? COMMA separator? pathPattern)*;
+
+pathPattern:
+	(pathVarDeclaration separator)? (pathPatternPrefix separator)? (
+		pathPatternExpr
+	)+;
+
+pathVarDeclaration: pathVar separator? EQUALS;
+
+keepClause: KEEP separator pathPatternPrefix;
+
+graphPatternWhereClause: WHERE separator searchCondition;
+
+pathPatternPrefix: pathModePrefix | pathSearchPrefix;
+
+pathModePrefix: pathMode (separator pathOrPaths)?;
+
+pathMode: WALK | TRAIL | SIMPLE | ACYCLIC;
+
+pathSearchPrefix:
+	allPathSearch
+	| anyPathSearch
+	| shortestPathSearch;
+
+allPathSearch:
+	ALL (separator pathMode)? (separator pathOrPaths)?;
+
+pathOrPaths: PATH | PATHS;
+
+anyPathSearch:
+	ANY (separator numberOfPaths)? (separator pathMode)? (
+		separator pathOrPaths
+	)?;
+
+numberOfPaths: unsignedIntSpec;
+
+shortestPathSearch:
+	allShortestPathSearch
+	| anyShortestPathSearch
+	| countedShortestPathSearch
+	| countedShortestGroupSearch;
+
+allShortestPathSearch:
+	ALL separator SHORTEST (separator pathMode)? (
+		separator pathOrPaths
+	)?;
+
+anyShortestPathSearch:
+	ANY separator SHORTEST (separator pathMode)? (
+		separator pathOrPaths
+	)?;
+
+countedShortestPathSearch:
+	SHORTEST separator numberOfPaths (separator pathMode)? (
+		separator pathOrPaths
+	)?;
+
+countedShortestGroupSearch:
+	SHORTEST separator numberOfGroups (separator pathMode)? (
+		separator pathOrPaths
+	)? separator groupOrGroups;
+
+groupOrGroups: GROUP | GROUPS;
+
+numberOfGroups: unsignedIntSpec;
+
+pathPatternExpr:
 	pathTerm
 	| pathMultisetAlternation
 	| pathPatternUnion;
 
 pathMultisetAlternation:
-	pathTerm MULTISET_ALT_OPERATOR pathTerm (
-		MULTISET_ALT_OPERATOR pathTerm
-	)*;
+	pathTerm (separator MULTISET_ALTERNATION separator pathTerm)*;
 
 pathPatternUnion:
-	pathTerm VERTICAL_BAR pathTerm (VERTICAL_BAR pathTerm)*;
+	pathTerm separator? (
+		VERTICAL_BAR separator? pathTerm separator?
+	)*;
 
-pathTerm: pathFactor | pathTerm pathFactor;
+pathTerm: pathFactor (separator pathFactor)*;
 
 pathFactor:
 	pathPrimary
 	| quantifiedPathPrimary
 	| questionedPathPrimary;
 
-quantifiedPathPrimary: pathPrimary graphPatternQuantifier;
+quantifiedPathPrimary:
+	pathPrimary separator graphPatternQuantifier;
 
 questionedPathPrimary: pathPrimary QUESTION_MARK;
 
 pathPrimary:
 	elementPattern
-	| parenthesizedPathPatternExpression
-	| simplifiedPathPatternExpression;
+	| parenthesizedPathPatternExpr
+	| simplifiedPathPatternExpr;
 
 elementPattern: nodePattern | edgePattern;
 
-nodePattern: LEFT_PAREN elementPatternFiller RIGHT_PAREN;
+nodePattern:
+	LEFT_PAREN separator? elementPatternFiller separator? RIGHT_PAREN;
 
 elementPatternFiller:
-	regularIdentifier? isLabelExpression? elementPatternPredicate? elementPatternCostClause?;
+	elementVarDeclaration? (separator? isLabelExpr)? (
+		separator? elementPatternPredicate
+	)?;
 
-isLabelExpression: IS | COLON labelExpression;
+elementVarDeclaration: (TEMP separator)? elementVar;
+
+isLabelExpr:
+	IS separator labelExpr
+	| COLON separator? labelExpr;
 
 elementPatternPredicate:
 	elementPatternWhereClause
-	| elementPropertySpecification;
+	| elementPropertySpec;
 
-elementPatternWhereClause: WHERE searchCondition;
+elementPatternWhereClause: WHERE separator searchCondition;
 
-elementPropertySpecification:
-	LEFT_BRACE propertyKeyValuePairList RIGHT_BRACE;
+elementPropertySpec:
+	LEFT_BRACE separator? propertyKeyValuePairList separator? RIGHT_BRACE;
 
 propertyKeyValuePairList:
-	propertyKeyValuePair (COMMA propertyKeyValuePair)*;
+	propertyKeyValuePair separator? (
+		COMMA separator? propertyKeyValuePair separator?
+	)*;
 
-propertyKeyValuePair: identifier COLON valueExpression;
-
-elementPatternCostClause: costClause;
-
-costClause: COST valueExpression (DEFAULT valueExpression)?;
+propertyKeyValuePair:
+	propertyName separator? COLON separator? valueExpr;
 
 edgePattern: fullEdgePattern | abbreviatedEdgePattern;
 
@@ -876,34 +714,103 @@ fullEdgePattern:
 	| fullEdgeAnyDirection;
 
 fullEdgePointingLeft:
-	LEFT_ARROW_RIGHT_BRACKET elementPatternFiller RIGHT_BRACKET_MINUS;
+	LEFT_ARROW_BRACKET separator? elementPatternFiller separator? RIGHT_BRACKET_MINUS;
 
 fullEdgeUndirected:
-	TILDE_LEFT_BRACKET elementPatternFiller RIGHT_BRACKET_TILDE;
+	TILDE_LEFT_BRACKET separator? elementPatternFiller separator? RIGHT_BRACKET_TILDE;
 
 fullEdgePointingRight:
-	MINUS_LEFT_BRACKET elementPatternFiller RIGHT_BRACKET_RIGHT_ARROW;
+	MINUS_LEFT_BRACKET separator? elementPatternFiller separator? BRACKET_RIGHT_ARROW;
 
 fullEdgeLeftOrUndirected:
-	LEFT_ARROW_TILDE RIGHT_BRACKET elementPatternFiller RIGHT_BRACKET_TILDE;
+	LEFT_ARROW_TILDE_BRACKET separator? elementPatternFiller separator? RIGHT_BRACKET_TILDE;
 
 fullEdgeUndirectedOrRight:
-	TILDE RIGHT_BRACKET elementPatternFiller RIGHT_BRACKET TILDE_RIGHT_ARROW;
+	TILDE_LEFT_BRACKET separator? elementPatternFiller separator? BRACKET_RIGHT_ARROW;
 
 fullEdgeLeftOrRight:
-	LEFT_ANGLE_BRACKET LEFT_BRACKET elementPatternFiller RIGHT_BRACKET_RIGHT_ARROW;
+	LEFT_ARROW_BRACKET separator? elementPatternFiller separator? BRACKET_RIGHT_ARROW;
 
 fullEdgeAnyDirection:
-	MINUS_LEFT_BRACKET elementPatternFiller RIGHT_BRACKET_MINUS;
+	MINUS_LEFT_BRACKET separator? elementPatternFiller separator? RIGHT_BRACKET_MINUS;
 
 abbreviatedEdgePattern:
-	LEFT_ANGLE_BRACKET
+	LEFT_ARROW
 	| TILDE
-	| RIGHT_ANGLE_BRACKET
+	| RIGHT_ARROW
 	| LEFT_ARROW_TILDE
 	| TILDE_RIGHT_ARROW
-	| NOT_EQUALS
+	| LEFT_MINUS_RIGHT
 	| MINUS;
+
+parenthesizedPathPatternExpr:
+	LEFT_PAREN separator? (subpathVarDeclaration separator)? (
+		pathModePrefix separator
+	)? pathPatternExpr (
+		separator parenthesizedPathPatternWhereClause
+	)? separator? RIGHT_PAREN;
+
+subpathVarDeclaration: subpathVar separator? EQUALS;
+
+parenthesizedPathPatternWhereClause:
+	WHERE separator searchCondition;
+
+insertGraphPattern: insertGraphPatternList;
+
+insertGraphPatternList:
+	insertPathPattern (
+		separator? COMMA separator? insertPathPattern separator?
+	)*;
+
+insertPathPattern:
+	insertNodePattern (
+		separator? insertEdgePattern separator insertNodePattern separator?
+	)*;
+
+insertNodePattern:
+	LEFT_PAREN separator? insertElementPatternFiller? separator? RIGHT_PAREN;
+
+insertEdgePattern:
+	insertEdgePointingLeft
+	| insertEdgePointingRight
+	| insertEdgeUndirected;
+
+insertEdgePointingLeft:
+	LEFT_ARROW_BRACKET separator? insertElementPatternFiller separator? RIGHT_BRACKET_MINUS;
+
+insertEdgePointingRight:
+	MINUS_LEFT_BRACKET separator? insertElementPatternFiller separator? BRACKET_RIGHT_ARROW;
+
+insertEdgeUndirected:
+	TILDE_LEFT_BRACKET separator? insertElementPatternFiller separator? RIGHT_BRACKET_TILDE;
+
+insertElementPatternFiller:
+	elementVarDeclaration (separator labelAndPropertySetSpec)?
+	| (elementVarDeclaration separator)? labelAndPropertySetSpec;
+
+labelAndPropertySetSpec:
+	labelSetSpec (separator elementPropertySpec)?
+	| (labelSetSpec separator)? elementPropertySpec;
+
+labelExpr:
+	labelTerm (separator? VERTICAL_BAR separator? labelTerm)*;
+
+labelTerm:
+	labelFactor (separator? AMPERSAND separator? labelFactor)*;
+
+labelFactor: labelPrimary | labelNegation;
+
+labelNegation: EXCLAMATION separator? labelPrimary;
+
+labelPrimary:
+	labelName
+	| wildcardLabel
+	| parenthesizedLabelExpr;
+
+wildcardLabel: PERCENT;
+
+parenthesizedLabelExpr:
+	LEFT_PAREN separator? labelExpr separator? RIGHT_PAREN;
 
 graphPatternQuantifier:
 	ASTERISK
@@ -911,74 +818,19 @@ graphPatternQuantifier:
 	| fixedQuantifier
 	| generalQuantifier;
 
-fixedQuantifier: LEFT_BRACE unsignedInteger RIGHT_BRACE;
+fixedQuantifier:
+	LEFT_BRACE separator? UNSIGNED_INT separator? RIGHT_BRACE;
 
 generalQuantifier:
-	LEFT_BRACE unsignedInteger? COMMA unsignedInteger? RIGHT_BRACE;
+	LEFT_BRACE separator? (lowerBound separator)? COMMA (
+		separator upperBound
+	)? separator? RIGHT_BRACE;
 
-parenthesizedPathPatternExpression:
-	LEFT_PAREN subpathVariableDeclaration? pathModePrefix? pathPatternExpression?
-		parenthesizedPathPatternWhereClause? costClause? RIGHT_PAREN
-	| LEFT_BRACKET subpathVariableDeclaration? pathModePrefix? pathPatternExpression?
-		parenthesizedPathPatternWhereClause? costClause? RIGHT_BRACKET;
+lowerBound: UNSIGNED_INT;
 
-subpathVariableDeclaration: regularIdentifier EQUALS;
+upperBound: UNSIGNED_INT;
 
-parenthesizedPathPatternWhereClause: WHERE searchCondition;
-
-pathPatternPrefix: pathModePrefix | pathSearchPrefix;
-
-pathModePrefix: PATH_MODE PATH?;
-
-pathSearchPrefix:
-	allPathSearch
-	| anyPathSearch
-	| shortestPathSearch;
-
-allPathSearch: ALL PATH_MODE? PATH?;
-
-anyPathSearch:
-	ANY (unsignedIntegerSpecification)? PATH_MODE? PATH?;
-
-shortestPathSearch:
-	allShortestPathSearch
-	| anyShortestPathSearch
-	| countedShortestPathSearch
-	| countedShortestGroupSearch;
-
-allShortestPathSearch: ALL SHORTEST PATH_MODE? (PATH | PATHS)?;
-
-anyShortestPathSearch: ANY SHORTEST PATH_MODE? (PATH | PATHS)?;
-
-countedShortestPathSearch:
-	SHORTEST unsignedIntegerSpecification PATH_MODE? PATH?;
-
-countedShortestGroupSearch:
-	SHORTEST unsignedIntegerSpecification PATH_MODE? PATH? {};
-
-simpleGraphPattern: simplePathPatternList;
-
-simplePathPatternList:
-	simplePathPattern (COMMA simplePathPattern)*;
-
-simplePathPattern: pathPatternExpression;
-
-labelExpression:
-	labelExpression VERTICAL_BAR labelTerm
-	| labelTerm;
-
-labelTerm: labelTerm AMPERSAND labelFactor | labelFactor;
-
-labelFactor:
-	identifier
-	| PERCENT
-	| parenthesizedLabelExpression;
-
-parenthesizedLabelExpression:
-	LEFT_PAREN labelExpression RIGHT_PAREN
-	| LEFT_BRACKET labelExpression RIGHT_BRACKET;
-
-simplifiedPathPatternExpression:
+simplifiedPathPatternExpr:
 	simplifiedDefaultingLeft
 	| simplifiedDefaultingUndirected
 	| simplifiedDefaultingRight
@@ -988,25 +840,25 @@ simplifiedPathPatternExpression:
 	| simplifiedDefaultingAnyDirection;
 
 simplifiedDefaultingLeft:
-	LEFT_ARROW_MIUNUS simplifiedContents MINUS_RIGHT_ARROW;
+	LEFT_MINUS_SLASH separator? simplifiedContents separator? SLASH_MINUS;
 
 simplifiedDefaultingUndirected:
-	TILDE_SLASH simplifiedContents SLASH_TILDE;
+	TILDE_SLASH separator? simplifiedContents separator? SLASH_TILDE;
 
 simplifiedDefaultingRight:
-	MINUS SOLIDUS simplifiedContents SOLIDUS MINUS;
+	MINUS_SLASH separator? simplifiedContents separator? SLASH_MINUS_RIGHT;
 
 simplifiedDefaultingLeftOrUndirected:
-	LEFT_ARROW_TILDE SOLIDUS simplifiedContents SLASH_TILDE;
+	LEFT_TILDE_SLASH separator? simplifiedContents separator? SLASH_TILDE;
 
 simplifiedDefaultingUndirectedOrRight:
-	TILDE_SLASH simplifiedContents SLASH_TILDE MINUS;
+	TILDE_SLASH separator? simplifiedContents separator? SLASH_TILDE_RIGHT;
 
 simplifiedDefaultingLeftOrRight:
-	LEFT_ARROW_TILDE SOLIDUS simplifiedContents SLASH_MINUS;
+	LEFT_MINUS_SLASH separator? simplifiedContents separator? SLASH_MINUS_RIGHT;
 
 simplifiedDefaultingAnyDirection:
-	MINUS SOLIDUS simplifiedContents MINUS_RIGHT_ARROW;
+	MINUS_SLASH separator? simplifiedContents separator? SLASH_MINUS;
 
 simplifiedContents:
 	simplifiedTerm
@@ -1014,25 +866,30 @@ simplifiedContents:
 	| simplifiedMultisetAlternation;
 
 simplifiedPathUnion:
-	simplifiedTerm (VERTICAL_BAR simplifiedTerm)*;
+	simplifiedTerm (
+		separator? VERTICAL_BAR separator? simplifiedTerm
+	)*;
 
 simplifiedMultisetAlternation:
-	simplifiedTerm (MULTISET_ALT_OPERATOR simplifiedTerm)*;
+	simplifiedTerm (
+		separator? MULTISET_ALTERNATION separator? simplifiedTerm
+	)*;
 
 simplifiedTerm:
-	simplifiedTerm simplifiedFactorLow
-	| simplifiedFactorLow;
+	simplifiedFactorLow (separator simplifiedFactorLow)*;
 
 simplifiedFactorLow:
-	simplifiedFactorHigh
-	| simplifiedFactorLow AMPERSAND simplifiedFactorHigh;
+	simplifiedFactorHigh (
+		separator? AMPERSAND separator? simplifiedFactorHigh
+	)*;
 
 simplifiedFactorHigh:
 	simplifiedTertiary
-	| simplifiedQuantified
+	| simplifiedQuntified
 	| simplifiedQuestioned;
 
-simplifiedQuantified: simplifiedTertiary graphPatternQuantifier;
+simplifiedQuntified:
+	simplifiedTertiary separator graphPatternQuantifier;
 
 simplifiedQuestioned: simplifiedTertiary QUESTION_MARK;
 
@@ -1050,64 +907,58 @@ simplifiedDirectionOverride:
 	| simplifiedOverrideAnyDirection;
 
 simplifiedOverrideLeft:
-	LEFT_ARROW_MIUNUS simplifiedSecondary MINUS_RIGHT_ARROW;
+	LEFT_ANGLE_BRACKET separator? simplifiedSecondary;
 
 simplifiedOverrideUndirected:
-	TILDE_SLASH simplifiedSecondary SLASH_TILDE;
+	TILDE separator? simplifiedSecondary;
 
 simplifiedOverrideRight:
-	MINUS SOLIDUS simplifiedSecondary SLASH_MINUS;
+	simplifiedSecondary separator? RIGHT_ANGLE_BRACKET;
 
 simplifiedOverrideLeftOrUndirected:
-	LEFT_ARROW_TILDE SOLIDUS simplifiedSecondary SLASH_TILDE;
+	LEFT_ARROW_TILDE separator? simplifiedSecondary;
 
 simplifiedOverrideUndirectedOrRight:
-	TILDE_SLASH simplifiedSecondary SLASH_TILDE MINUS;
+	TILDE separator? simplifiedSecondary separator? RIGHT_ANGLE_BRACKET;
 
 simplifiedOverrideLeftOrRight:
-	LEFT_ARROW_MIUNUS SOLIDUS simplifiedSecondary SLASH_MINUS;
+	LEFT_ANGLE_BRACKET separator? simplifiedSecondary separator? RIGHT_ANGLE_BRACKET;
 
 simplifiedOverrideAnyDirection:
-	MINUS SOLIDUS simplifiedSecondary MINUS_RIGHT_ARROW;
+	MINUS separator? simplifiedSecondary;
 
 simplifiedSecondary: simplifiedPrimary | simplifiedNegation;
 
 simplifiedNegation: EXCLAMATION simplifiedPrimary;
 
 simplifiedPrimary:
-	identifier
-	| LEFT_PAREN simplifiedContents RIGHT_PAREN
-	| LEFT_BRACKET simplifiedContents RIGHT_BRACKET;
+	labelName
+	| LEFT_PAREN separator? simplifiedContents separator? RIGHT_PAREN;
 
-whereClause: WHERE searchCondition;
+whereClause: WHERE separator searchCondition;
 
-procedureCall:
-	nestedProcedureSpecification
-	| namedProcedureCall;
+yieldClause: YIELD separator yieldItemList;
 
-namedProcedureCall:
-	procedureReference LEFT_PAREN procedureArgumentList RIGHT_PAREN yieldClause;
+yieldItemList:
+	yieldItem (separator? COMMA separator? yieldItem)+;
 
-procedureArgumentList:
-	procedureArgument (COMMA procedureArgument)*;
+yieldItem: yieldItemName (separator yieldItemAlias)?;
 
-procedureArgument: valueExpression;
+yieldItemName: fieldName;
 
-yieldClause: YIELD yieldItemList;
+yieldItemAlias: AS bindingVar;
 
-yieldItemList: yieldItem (COMMA yieldItem)*;
-
-yieldItem: identifier AS regularIdentifier;
-
-groupByClause: GROUP BY groupingElementList;
+groupByClause: GROUP separator BY separator groupingElementList;
 
 groupingElementList:
-	identifier (COMMA identifier)*
+	groupingElement (separator? COMMA separator? groupingElement)+
 	| emptyGroupingSet;
 
-emptyGroupingSet: LEFT_PAREN RIGHT_PAREN;
+groupingElement: bindingVarRef;
 
-orderByClause: ORDER BY sortSpecificationList;
+emptyGroupingSet: LEFT_PAREN separator? RIGHT_PAREN;
+
+orderByClause: ORDER separator BY separator sortSpecList;
 
 aggregateFunction:
 	COUNT LEFT_PAREN ASTERISK RIGHT_PAREN
@@ -1115,11 +966,9 @@ aggregateFunction:
 	| binarySetFunction;
 
 generalSetFunction:
-	generalSetFunctionType LEFT_PAREN setQuantifier valueExpression RIGHT_PAREN;
-
-binarySetFunction:
-	binarySetFunctionType LEFT_PAREN dependentValueExpression COMMA independentValueExpression
-		RIGHT_PAREN;
+	generalSetFunctionType LEFT_PAREN separator? (
+		setQuantifier separator
+	)? valueExpr separator? RIGHT_PAREN;
 
 generalSetFunctionType:
 	AVG
@@ -1127,902 +976,235 @@ generalSetFunctionType:
 	| MAX
 	| MIN
 	| SUM
-	| PRODUCT
 	| COLLECT
-	| ST_DEV
-	| ST_DEV_P;
+	| STDDEV_SAMP
+	| STDDEV_POP;
 
 setQuantifier: DISTINCT | ALL;
 
-binarySetFunctionType: PERCENTILE_CONT | PERCENTILE_DIST;
+binarySetFunction: PERCENTILE_CONT | PERCENTILE_DISC;
 
-dependentValueExpression: setQuantifier numericValueExpression;
+dependantValueExpr: (setQuantifier separator)? numericValueExpr;
 
-independentValueExpression: numericValueExpression;
+independentValueExpr: numericValueExpr;
 
-sortSpecificationList:
-	sortSpecification (COMMA sortSpecification)*;
+sortSpecList: sortSpec (separator? COMMA separator? sortSpec)+;
 
-sortSpecification: valueExpression (ASC | DESC) nullOrdering;
+sortSpec:
+	sortKey (separator orderingSpec)? (separator nullOrdering)?;
 
-nullOrdering: NULLS FIRST | NULLS LAST;
+sortKey: aggregatingValueExpr;
 
-limitClause: LIMIT unsignedIntegerSpecification;
+orderingSpec: ASC | ASCENDING | DESC | DESCENDING;
 
-offsetClause: (OFFSET | SSKIP) unsignedIntegerSpecification;
+nullOrdering: NULLS separator FIRST | NULLS separator LAST;
 
-schemaReference:
-	predefinedSchemaParameter
-	| catalogSchemaParentAndName
-	| externalObjectReference;
+limitClause: LIMIT unsignedIntSpec;
 
-catalogSchemaParentAndName:
-	LEFT_BRACKET absoluteUrlPath RIGHT_BRACKET DOUBLE_SOLIDUS identifier
-	| urlPathParameter;
+offsetClause: offsetSynonym separator unsignedIntSpec;
 
-graphReference: graphResolutionExpression | localGraphReference;
+offsetSynonym: OFFSET | SKIP_;
 
-graphResolutionExpression:
-	LEFT_BRACKET RIGHT_BRACKET GRAPH catalogGraphReference;
+// type elements grammar
+graphTypeSpec:
+	(PROPERTY separator)? GRAPH separator TYPE separator nestedGraphTypeSpec;
 
-catalogGraphReference:
-	catalogGraphParentAndName
-	| predefinedGraphParameter
-	| externalObjectReference;
+nestedGraphTypeSpec:
+	LEFT_BRACE separator? graphTypeSpecBody separator? RIGHT_BRACE;
 
-catalogGraphParentAndName:
-	graphParentSpecification identifier
-	| urlPathParameter;
+graphTypeSpecBody: elementTypeDefList;
 
-graphParentSpecification:
-	LEFT_BRACKET parentCatalogObjectReference RIGHT_BRACKET LEFT_BRACKET qualifiedObjectName PERIOD
-		RIGHT_BRACKET;
+elementTypeDefList:
+	elementTypeDef (separator? COMMA separator? elementTypeDef)*;
 
-localGraphReference:
-	LEFT_BRACKET qualifiedObjectName PERIOD RIGHT_BRACKET identifier;
+elementTypeDef: nodeTypeDef | edgeTypeDef;
 
-graphTypeReference:
-	graphTypeResolutionExpression
-	| qualifiedGraphTypeName;
+nodeTypeDef:
+	nodeTypePattern
+	| nodeSynonym separator nodeTypePhrase;
 
-graphTypeResolutionExpression:
-	LEFT_BRACKET RIGHT_BRACKET GRAPH TYPE catalogGraphTypeReference;
+nodeTypePattern:
+	LEFT_PAREN separator? nodeTypeName separator nodeTypeFiller separator? RIGHT_PAREN;
 
-catalogGraphTypeReference:
-	catalogGraphTypeParentAndName
-	| externalObjectReference;
+nodeTypePhrase:
+	(TYPE separator)? nodeTypeName (separator nodeTypeFiller)?
+	| nodeTypeFiller;
 
-catalogGraphTypeParentAndName:
-	graphTypeParentSpecification identifier
-	| urlPathParameter;
+nodeTypeName: elementTypeName;
 
-graphTypeParentSpecification:
-	LEFT_BRACKET parentCatalogObjectReference RIGHT_BRACKET LEFT_BRACKET qualifiedObjectName PERIOD
-		RIGHT_BRACKET;
+nodeTypeFiller:
+	nodeTypeLabelSetDef
+	| nodeTypePropertyTypeSetDef
+	| nodeTypeLabelSetDef separator nodeTypePropertyTypeSetDef;
 
-qualifiedGraphTypeName:
-	LEFT_BRACKET qualifiedObjectName PERIOD RIGHT_BRACKET identifier;
+nodeTypeLabelSetDef: labelSetDef;
 
-bindingTableReference:
-	bindingTableResolutionExpression
-	| localBindingTableReference;
+nodeTypePropertyTypeSetDef: propertyTypeSetDef;
 
-bindingTableResolutionExpression:
-	LEFT_BRACKET RIGHT_BRACKET TABLE catalogBindingTableReference;
+edgeTypeDef:
+	edgeTypePattern
+	| (edgeKind separator)? edgeSynonym separator edgeTypePhrase;
 
-catalogBindingTableReference:
-	catalogBindingTableParentAndName
-	| predefinedTableParameter
-	| externalObjectReference;
+edgeTypePattern:
+	fullEdgeTypePattern
+	| abbreviatedEdgeTypePattern;
 
-catalogBindingTableParentAndName:
-	bindingTableParentSpecification identifier
-	| urlPathParameter;
-
-bindingTableParentSpecification:
-	LEFT_BRACKET parentCatalogObjectReference RIGHT_BRACKET LEFT_BRACKET qualifiedObjectName PERIOD
-		RIGHT_BRACKET;
-
-localBindingTableReference: qualifiedBindingTableName;
-
-qualifiedBindingTableName:
-	LEFT_BRACKET qualifiedObjectName PERIOD RIGHT_BRACKET identifier;
-
-procedureReference:
-	PROCEDURE catalogProcedureReference
-	| localProcedureReference;
-
-catalogProcedureReference:
-	catalogProcedureParentAndName
-	| externalObjectReference;
-
-catalogProcedureParentAndName:
-	procedureParentSpecification identifier
-	| urlPathParameter;
-
-procedureParentSpecification:
-	LEFT_BRACKET parentCatalogObjectReference RIGHT_BRACKET LEFT_BRACKET qualifiedObjectName PERIOD
-		RIGHT_BRACKET;
-
-localProcedureReference: qualifiedProcedureName;
-
-qualifiedProcedureName:
-	LEFT_BRACKET qualifiedObjectName PERIOD RIGHT_BRACKET identifier;
-
-queryResolutionExpression: QUERY catalogQueryReference;
-
-catalogQueryReference:
-	catalogQueryParentAndName
-	| externalObjectReference;
-
-catalogQueryParentAndName:
-	queryParentSpecification identifier
-	| urlPathParameter;
-
-queryParentSpecification:
-	LEFT_BRACKET parentCatalogObjectReference RIGHT_BRACKET LEFT_BRACKET qualifiedObjectName PERIOD
-		RIGHT_BRACKET;
-
-qualifiedQueryName:
-	LEFT_BRACKET qualifiedObjectName PERIOD RIGHT_BRACKET identifier;
-
-functionResolutionExpression: FUNCTION catalogFunctionReference;
-
-catalogFunctionReference:
-	catalogFunctionParentAndName
-	| externalObjectReference;
-
-catalogFunctionParentAndName:
-	functionParentSpecification identifier
-	| urlPathParameter;
-
-functionParentSpecification:
-	LEFT_BRACKET parentCatalogObjectReference RIGHT_BRACKET LEFT_BRACKET qualifiedObjectName PERIOD
-		RIGHT_BRACKET;
-
-qualifiedFunctionName:
-	LEFT_BRACKET qualifiedObjectName PERIOD RIGHT_BRACKET identifier;
-
-catalogObjectReference: catalogUrlPath;
-
-parentCatalogObjectReference:
-	catalogObjectReference DOUBLE_SOLIDUS;
-
-catalogUrlPath:
-	absoluteUrlPath
-	| relativeUrlPath
-	| parameterizedUrlPath;
-absoluteUrlPath:
-	DOUBLE_SOLIDUS LEFT_BRACKET simpleUrlPath RIGHT_BRACKET;
-
-relativeUrlPath:
-	parentObjectRelativeUrlPath
-	| simpleRelativeUrlPath
-	| PERIOD;
-
-parentObjectRelativeUrlPath:
-	predefinedParentObjectParameter DOUBLE_SOLIDUS LEFT_BRACKET simpleUrlPath RIGHT_BRACKET;
-
-simpleRelativeUrlPath:
-	DOUBLE_PERIOD DOUBLE_SOLIDUS LEFT_BRACKET DOUBLE_PERIOD RIGHT_BRACKET DOUBLE_SOLIDUS
-		LEFT_BRACKET simpleUrlPath RIGHT_BRACKET
-	| simpleUrlPath;
-
-parameterizedUrlPath:
-	identifier DOUBLE_SOLIDUS LEFT_BRACKET simpleUrlPath RIGHT_BRACKET;
-
-simpleUrlPath:
-	identifier DOUBLE_SOLIDUS LEFT_BRACKET identifier RIGHT_BRACKET;
-
-urlSegment: identifier;
-
-qualifiedObjectName: qualifiedNamePrefix identifier;
-
-qualifiedNamePrefix:
-	LEFT_BRACKET identifier PERIOD RIGHT_BRACKET;
-
-urlPathParameter: identifier;
-
-externalObjectReference: externalObjectUrl;
-
-externalObjectUrl:;
-// See the Syntax Rules.;
-
-elementReference: regularIdentifier;
-
-searchCondition: booleanValueExpression;
-
-predicate:
-	comparisonPredicate
-	| existsPredicate
-	| nullPredicate
-	| normalizedPredicate
-	| directedPredicate
-	| labeledPredicate
-	| sourceDestinationPredicate
-	| allDifferentPredicate
-	| samePredicate;
-
-comparisonPredicate:
-	nonParenthesizedValueExpressionPrimary comparisonPredicatePart2;
-
-comparisonPredicatePart2:
-	COMPARE_OPERATOR nonParenthesizedValueExpressionPrimary;
-
-existsPredicate:
-	EXISTS (
-		LEFT_PAREN graphPattern RIGHT_PAREN
-		| nestedQuerySpecification
-	);
-
-nullPredicate: valueExpressionPrimary nullPredicatePart2;
-
-nullPredicatePart2: IS NOT? NULL;
-
-normalizedPredicate:
-	stringValueExpression normalizedPredicatePart2;
-
-normalizedPredicatePart2: IS NOT? NORMAL_FORM? NORMALIZED;
-
-directedPredicate: elementReference directedPredicatePart2;
-
-directedPredicatePart2: IS? DIRECTED;
-
-labeledPredicate: elementReference labeledPredicatePart2;
-
-labeledPredicatePart2: IS? LABELED labelExpression;
-
-sourceDestinationPredicate:
-	elementReference sourcePredicatePart2
-	| elementReference destinationPredicatePart2;
-
-sourcePredicatePart2: IS NOT? SOURCE OF? elementReference;
-
-destinationPredicatePart2:
-	IS NOT? DESTINATION OF? elementReference;
-
-allDifferentPredicate:
-	ALL_DIFFERENT LEFT_PAREN elementReference COMMA elementReference (
-		COMMA elementReference
-	)* RIGHT_PAREN;
-
-samePredicate:
-	SAME LEFT_PAREN elementReference COMMA elementReference (
-		COMMA elementReference
-	)* RIGHT_PAREN;
-
-valueSpecification: literal | parameterValueSpecification;
-
-unsignedValueSpecification:
-	unsignedLiteral
-	| parameterValueSpecification;
-
-unsignedIntegerSpecification: unsignedInteger | identifier;
-
-parameterValueSpecification: identifier | predefinedParameter;
-
-predefinedParameter:
-	predefinedParentObjectParameter
-	| predefinedTableParameter
-	| CURRENT_USER;
-
-predefinedParentObjectParameter:
-	predefinedSchemaParameter
-	| predefinedGraphParameter;
-
-predefinedSchemaParameter: HOME_SCHEMA | CURRENT_SCHEMA;
-
-predefinedGraphParameter:
-	EMPTY_PROPERTY_GRAPH
-	| EMPTY_GRAPH
-	| HOME_PROPERTY_GRAPH
-	| HOME_GRAPH
-	| CURRENT_PROPERTY_GRAPH
-	| CURRENT_GRAPH;
-
-predefinedTableParameter:
-	EMPTY_BINDING_TABLE
-	| EMPTY_TABLE
-	| UNIT_BINDING_TABLE
-	| UNIT_TABLE;
-
-valueExpression: untypedValueExpression (ofValueType)?;
-
-untypedValueExpression:
-	commonValueExpression
-	| booleanValueExpression;
-
-commonValueExpression:
-	numericValueExpression
-	| stringValueExpression
-	| datetimeValueExpression
-	| durationValueExpression
-	| collectionValueExpression
-	| mapValueExpression
-	| valueExpressionPrimary
-	| referenceValueExpression;
-
-referenceValueExpression:
-	primaryResultObjectExpression
-	| graphElementPrimary;
-
-collectionValueExpression:
-	listValueExpression
-	| multisetValueExpression
-	| setValueExpression
-	| orderedSetValueExpression;
-
-setValueExpression: valueExpressionPrimary;
-
-orderedSetValueExpression: valueExpressionPrimary;
-
-mapValueExpression: valueExpressionPrimary;
-
-booleanValueExpression:
-	booleanTerm
-	| booleanValueExpression OR booleanTerm
-	| booleanValueExpression XOR booleanTerm;
-
-booleanTerm: booleanFactor | booleanTerm AND booleanFactor;
-
-booleanFactor: NOT? booleanTest;
-
-booleanTest:
-	booleanPrimary ((IS NOT? | EQUALS | NOT_EQUALS) TRUTH_VALUE)?;
-
-booleanPrimary: predicate | booleanPredicand;
-
-booleanPredicand:
-	LEFT_PAREN booleanValueExpression RIGHT_PAREN
-	| nonParenthesizedValueExpressionPrimary;
-
-numericValueExpression:
-	term
-	| numericValueExpression PLUS term
-	| numericValueExpression MINUS term;
-
-term: factor | term ASTERISK factor | term SOLIDUS factor;
-
-factor: (sign)? numericPrimary;
-
-numericPrimary: valueExpressionPrimary | numericValueFunction;
-
-valueExpressionPrimary:
-	LEFT_PAREN valueExpression RIGHT_PAREN
-	| nonParenthesizedValueExpressionPrimary;
-
-nonParenthesizedValueExpressionPrimary:
-	graphElementPrimary PERIOD identifier
-	| identifier
-	| parameterValueSpecification
-	| unsignedValueSpecification
-	| aggregateFunction
-	| collectionValueConstructor
-	| VALUE nestedQuerySpecification
-	| caseExpression
-	| castSpecification
-	| element_idFunction;
-
-numericValueFunction:
-	lengthExpression
-	| absoluteValueExpression
-	| modulusExpression
-	| trigonometricFunction
-	| generalLogarithmFunction
-	| commonLogarithm
-	| naturalLogarithm
-	| exponentialFunction
-	| powerFunction
-	| squareRoot
-	| floorFunction
-	| ceilingFunction
-	| inDegreeFunction
-	| outDegreeFunction;
-
-lengthExpression:
-	charLengthExpression
-	| byteLengthExpression
-	| pathLengthExpression;
-
-charLengthExpression:
-	CHARACTER_LENGTH LEFT_PAREN characterStringValueExpression RIGHT_PAREN;
-
-byteLengthExpression: (BYTE_LENGTH | OCTET_LENGTH) LEFT_PAREN stringValueExpression RIGHT_PAREN;
-
-pathLengthExpression: LENGTH LEFT_PAREN identifier RIGHT_PAREN;
-
-absoluteValueExpression:
-	ABS LEFT_PAREN numericValueExpression RIGHT_PAREN;
-
-modulusExpression:
-	MOD LEFT_PAREN numericValueExpression COMMA numericValueExpression RIGHT_PAREN;
-
-trigonometricFunction:
-	TRYGONOMETRIC_FUNCTION_NAME LEFT_PAREN numericValueExpression RIGHT_PAREN;
-
-generalLogarithmFunction:
-	LOG LEFT_PAREN numericValueExpression COMMA numericValueExpression RIGHT_PAREN;
-
-commonLogarithm:
-	LOG10 LEFT_PAREN numericValueExpression RIGHT_PAREN;
-
-naturalLogarithm:
-	LN LEFT_PAREN numericValueExpression RIGHT_PAREN;
-
-exponentialFunction:
-	EXP LEFT_PAREN numericValueExpression RIGHT_PAREN;
-
-powerFunction:
-	POWER LEFT_PAREN numericValueExpression COMMA numericValueExpression RIGHT_PAREN;
-
-squareRoot: SQRT LEFT_PAREN numericValueExpression RIGHT_PAREN;
-
-floorFunction:
-	FLOOR LEFT_PAREN numericValueExpression RIGHT_PAREN;
-
-ceilingFunction: (CEIL | CEILING) LEFT_PAREN numericValueExpression RIGHT_PAREN;
-
-inDegreeFunction: IN_DEGREE LEFT_PAREN identifier RIGHT_PAREN;
-
-outDegreeFunction: OUT_DEGREE LEFT_PAREN identifier RIGHT_PAREN;
-
-stringValueExpression:
-	characterStringValueExpression
-	| byteStringValueExpression;
-
-characterStringValueExpression:
-	characterStringValueExpression CONCATENATION_OPERATOR characterStringPrimary
-	| characterStringPrimary;
-
-characterStringPrimary:
-	valueExpressionPrimary
-	| stringValueFunction;
-
-byteStringValueExpression:
-	byteStringValueExpression CONCATENATION_OPERATOR byteStringPrimary
-	| byteStringPrimary;
-
-byteStringPrimary: valueExpressionPrimary | stringValueFunction;
-
-stringValueFunction:
-	characterStringFunction
-	| byteStringFunction;
-
-characterStringFunction:
-	substringFunction
-	| fold
-	| trimFunction
-	| normalizeFunction;
-
-substringFunction:
-	SUBSTRING LEFT_PAREN characterStringValueExpression COMMA startPosition (
-		COMMA stringLength
-	)? RIGHT_PAREN
-	| LEFT LEFT_PAREN characterStringValueExpression COMMA stringLength RIGHT_PAREN
-	| RIGHT LEFT_PAREN characterStringValueExpression COMMA stringLength RIGHT_PAREN;
-
-fold: (UPPER | TO_UPPER | LOWER | TO_LOWER) LEFT_PAREN characterStringValueExpression RIGHT_PAREN;
-
-trimFunction:
-	TRIM LEFT_PAREN characterStringValueExpression (
-		COMMA TRIM_SPEC (COMMA characterStringValueExpression)?
-	)? RIGHT_PAREN
-	| L_TRIM LEFT_PAREN characterStringValueExpression RIGHT_PAREN
-	| R_TRIM LEFT_PAREN characterStringValueExpression RIGHT_PAREN;
-
-normalizeFunction:
-	NORMALIZE LEFT_PAREN characterStringValueExpression (
-		COMMA normalForm
-	)? RIGHT_PAREN;
-
-normalForm: NFC | NFD | NFKC | NFKD;
-
-byteStringFunction:
-	byteSubstringFunction
-	| byteStringTrimFunction;
-
-byteSubstringFunction:
-	SUBSTRING LEFT_PAREN byteStringValueExpression COMMA startPosition (
-		COMMA stringLength
-	)? RIGHT_PAREN
-	| LEFT LEFT_PAREN byteStringValueExpression COMMA stringLength RIGHT_PAREN
-	| RIGHT LEFT_PAREN byteStringValueExpression COMMA stringLength RIGHT_PAREN;
-
-byteStringTrimFunction:
-	TRIM LEFT_PAREN byteStringValueExpression (
-		COMMA TRIM_SPEC (COMMA byteStringValueExpression)?
-	)? RIGHT_PAREN
-	| L_TRIM LEFT_PAREN byteStringValueExpression RIGHT_PAREN
-	| R_TRIM LEFT_PAREN byteStringValueExpression RIGHT_PAREN;
-
-startPosition: numericValueExpression;
-
-stringLength: numericValueExpression;
-
-datetimeValueExpression:
-	datetimePrimary
-	| durationValueExpression PLUS datetimePrimary
-	| datetimeValueExpression PLUS datetimePrimary
-	| datetimeValueExpression MINUS datetimePrimary;
-
-datetimePrimary: valueExpressionPrimary | datetimeValueFunction;
-
-datetimeValueFunction:
-	dateFunction
-	| timeFunction
-	| datetimeFunction
-	| localTimeFunction
-	| localDatetimeFunction;
-
-dateFunction:
-	CURRENT_DATE
-	| DATE LEFT_PAREN dateFunctionParameters? RIGHT_PAREN;
-
-timeFunction:
-	CURRENT_TIME
-	| TIME LEFT_PAREN timeFunctionParameters? RIGHT_PAREN;
-
-localTimeFunction:
-	LOCALTIME
-	| LOCALTIME LEFT_PAREN timeFunctionParameters? RIGHT_PAREN;
-
-datetimeFunction:
-	CURRENT_TIMESTAMP
-	| DATETIME LEFT_PAREN datetimeFunctionParameters? RIGHT_PAREN;
-
-localDatetimeFunction:
-	LOCALTIMESTAMP
-	| LOCALDATETIME LEFT_PAREN datetimeFunctionParameters? RIGHT_PAREN;
-
-dateFunctionParameters: dateString | mapValueConstructor;
-
-timeFunctionParameters: timeString | mapValueConstructor;
-
-datetimeFunctionParameters:
-	datetimeString
-	| mapValueConstructor;
-
-durationValueExpression:
-	durationTerm
-	| durationValueExpression PLUS durationTerm
-	| durationValueExpression MINUS durationTerm
-	| LEFT_PAREN datetimeValueExpression MINUS datetimePrimary RIGHT_PAREN;
-
-durationTerm:
-	durationFactor
-	| durationTerm ASTERISK factor
-	| durationTerm SOLIDUS factor
-	| term ASTERISK durationFactor;
-
-durationFactor: SIGN? durationPrimary;
-
-durationPrimary: valueExpressionPrimary | durationValueFunction;
-
-durationValueFunction:
-	durationFunction
-	| durationAbsoluteValueFunction;
-
-durationFunction:
-	DURATION LEFT_PAREN durationFunctionParameters RIGHT_PAREN;
-
-durationFunctionParameters:
-	durationString
-	| mapValueConstructor;
-
-durationAbsoluteValueFunction:
-	ABS LEFT_PAREN durationValueExpression RIGHT_PAREN;
-
-graphElementPrimary: startNodeFunction | endNodeFunction;
-
-startNodeFunction: START_NODE LEFT_PAREN identifier RIGHT_PAREN;
-
-endNodeFunction: END_NODE LEFT_PAREN identifier RIGHT_PAREN;
-
-collectionValueConstructor:
-	listValueConstructor
-	| setValueConstructor
-	| orderedSetValueConstructorByEnumeration
-	| mapValueConstructor
-	| recordValueConstructor;
-
-listValueExpression:
-	listValueExpression CONCATENATION_OPERATOR listPrimary
-	| listPrimary;
-
-listPrimary: listValueFunction | valueExpressionPrimary;
-
-listValueFunction: tailListFunction | trimListFunction;
-
-tailListFunction:
-	TAIL LEFT_PAREN listValueExpression RIGHT_PAREN;
-
-trimListFunction:
-	TRIM LEFT_PAREN listValueExpression COMMA numericValueExpression RIGHT_PAREN;
-
-listValueConstructor: listValueConstructorByEnumeration;
-
-listValueConstructorByEnumeration:
-	listValueTypeName LEFT_BRACKET listElementList RIGHT_BRACKET;
-
-listElementList: valueExpression (COMMA valueExpression)*;
-
-multisetValueExpression:
-	multisetTerm
-	| multisetValueExpression (
-		MULTISET UNION (ALL | DISTINCT)? multisetTerm
+edgeTypePhrase:
+	(TYPE separator)? edgeTypeName (
+		separator edgeTypeFiller separator endpointDef
 	)
-	| multisetValueExpression (
-		MULTISET EXCEPT (ALL | DISTINCT)? multisetTerm
-	);
+	| edgeTypeFiller separator endpointDef;
 
-multisetTerm:
-	multisetPrimary
-	| multisetTerm (
-		MULTISET INTERSECT (ALL | DISTINCT)? multisetPrimary
-	);
+edgeTypeName: elementTypeName;
 
-multisetPrimary: multisetValueFunction | valueExpressionPrimary;
+edgeTypeFiller:
+	edgeTypeLabelSetDef
+	| edgeTypePropertyTypeSetDef
+	| edgeTypeLabelSetDef separator edgeTypePropertyTypeSetDef;
 
-multisetValueFunction:
-	SET LEFT_PAREN multisetValueConstructorByEnumeration RIGHT_PAREN;
+edgeTypeLabelSetDef: labelSetDef;
 
-multisetValueConstructorByEnumeration:
-	MULTISET LEFT_BRACE multisetElementList RIGHT_BRACE;
+edgeTypePropertyTypeSetDef: propertyTypeSetDef;
 
-multisetElementList: valueExpression (COMMA valueExpression)*;
+fullEdgeTypePattern:
+	fullEdgeTypePatternPointingRight
+	| fullEdgeTypePatternPointingLeft
+	| fullEdgeTypePatternUndirected;
 
-setValueConstructor: setValueConstructorByEnumeration;
+fullEdgeTypePatternPointingRight:
+	sourceNodeTypeRef arcTypePointingRight destinationNodeTypeRef;
 
-setValueConstructorByEnumeration:
-	SET LEFT_BRACE setElementList RIGHT_BRACE;
+fullEdgeTypePatternPointingLeft:
+	destinationNodeTypeRef arcTypePointingLeft sourceNodeTypeRef;
 
-setElementList: valueExpression (COMMA valueExpression)*;
+fullEdgeTypePatternUndirected:
+	sourceNodeTypeRef arcTypeUndirected destinationNodeTypeRef;
 
-orderedSetValueConstructorByEnumeration:
-	ORDERED SET LEFT_BRACE orderedSetElementList RIGHT_BRACE
-	| LEFT_BRACE orderedSetElementList RIGHT_BRACE
-	| LEFT_BRACKET orderedSetElementList RIGHT_BRACKET;
+arcTypePointingRight:
+	MINUS_LEFT_BRACKET separator? arcTypeFiller separator? BRACKET_RIGHT_ARROW;
 
-orderedSetElementList: valueExpression (COMMA valueExpression)*;
+arcTypePointingLeft:
+	LEFT_ARROW_BRACKET separator? arcTypeFiller separator? RIGHT_BRACKET_MINUS;
 
-mapValueConstructor: mapValueConstructorByEnumeration;
+arcTypeUndirected:
+	TILDE_LEFT_BRACKET separator? arcTypeFiller separator? RIGHT_BRACKET_TILDE;
 
-mapValueConstructorByEnumeration:
-	MAP LEFT_BRACE mapElementList RIGHT_BRACE;
+arcTypeFiller: edgeTypeName separator? edgeTypeFiller;
 
-mapElementList: mapElement (COMMA mapElement)*;
+abbreviatedEdgeTypePattern:
+	abbreviatedEdgeTypePatternPointingRight
+	| abbreviatedEdgeTypePatternPointingLeft
+	| abbreviatedEdgeTypePatternUndirected;
 
-mapElement: mapKey valueExpression;
+abbreviatedEdgeTypePatternPointingRight:
+	sourceNodeTypeRef separator? RIGHT_ARROW separator? destinationNodeTypeRef;
 
-mapKey: valueExpression COLON;
+abbreviatedEdgeTypePatternPointingLeft:
+	destinationNodeTypeRef separator? LEFT_ARROW separator? sourceNodeTypeRef;
 
-recordValueConstructor:
-	recordValueConstructorByEnumeration
-	| UNIT;
+abbreviatedEdgeTypePatternUndirected:
+	sourceNodeTypeRef separator? TILDE separator? destinationNodeTypeRef;
 
-recordValueConstructorByEnumeration:
-	RECORD LEFT_BRACE fieldList RIGHT_BRACE
-	| LEFT_BRACE fieldList RIGHT_BRACE;
+nodeTypeRef: sourceNodeTypeRef | destinationNodeTypeRef;
 
-fieldList: field (COMMA field)*;
+sourceNodeTypeRef:
+	LEFT_PAREN separator? sourceNodeTypeName separator? RIGHT_PAREN
+	| LEFT_PAREN separator? nodeTypeFiller? separator? RIGHT_PAREN;
 
-field: identifier fieldValue;
+destinationNodeTypeRef:
+	LEFT_PAREN separator? destinationNodeTypeName separator? RIGHT_PAREN
+	| LEFT_PAREN separator? nodeTypeFiller? separator? RIGHT_PAREN;
 
-fieldValue: valueExpression;
+edgeKind: DIRECTED | UNDIRECTED;
 
-caseExpression: caseAbbreviation | simpleCase | searchedCase;
+endpointDef: CONNECTING enpointPairDef;
 
-caseAbbreviation:
-	NULLIF LEFT_PAREN valueExpression COMMA valueExpression RIGHT_PAREN
-	| COALESCE LEFT_PAREN valueExpression (COMMA valueExpression)* RIGHT_PAREN;
+enpointPairDef:
+	endpointPairDefPointingRight
+	| endpointPairDefPointingLeft
+	| endpointPairDefUndirected
+	| abbreviatedEdgeTypePattern;
 
-simpleCase: CASE caseOperand simpleWhenClause* elseClause? END;
+endpointPairDefPointingRight:
+	LEFT_PAREN separator? sourceNodeTypeName separator? connectorPointingRight separator?
+		destinationNodeTypeName separator? RIGHT_PAREN;
 
-searchedCase: CASE searchedWhenClause* elseClause? END;
+endpointPairDefPointingLeft:
+	LEFT_PAREN separator? destinationNodeTypeName separator? connectorPointingLeft separator?
+		sourceNodeTypeName separator? RIGHT_PAREN;
 
-simpleWhenClause: WHEN whenOperandList THEN result;
+endpointPairDefUndirected:
+	LEFT_PAREN separator? sourceNodeTypeName separator? connectorUndirected separator?
+		destinationNodeTypeName separator? RIGHT_PAREN;
 
-searchedWhenClause: WHEN searchCondition THEN result;
+connectorPointingRight: TO | RIGHT_ARROW;
 
-elseClause: ELSE result;
+connectorPointingLeft: LEFT_ARROW;
 
-caseOperand:
-	nonParenthesizedValueExpressionPrimary
-	| elementReference;
+connectorUndirected: TO | TILDE;
 
-whenOperandList: whenOperand (COMMA whenOperand)*;
+sourceNodeTypeName: elementTypeName;
 
-whenOperand:
-	nonParenthesizedValueExpressionPrimary
-	| comparisonPredicatePart2
-	| nullPredicatePart2
-	| directedPredicatePart2
-	| labeledPredicatePart2
-	| sourcePredicatePart2
-	| destinationPredicatePart2;
+destinationNodeTypeName: elementTypeName;
 
-result: valueExpression | NULL;
+labelSetDef:
+	LABEL separator labelName
+	| LABELS separator labelSetSpec
+	| IS separator labelSetSpec
+	| COLON separator? labelSetSpec;
 
-castSpecification:
-	CAST LEFT_PAREN (valueExpression | NULL) AS predefinedType RIGHT_PAREN;
+propertyTypeSetDef:
+	LEFT_BRACE separator? propertyTypeDefList? separator? RIGHT_BRACE;
 
-multisetSetFunction:
-	SET LEFT_PAREN multisetValueExpression RIGHT_PAREN;
+propertyTypeDefList:
+	propertyTypeDef (separator? COMMA separator? propertyTypeDef)*;
 
-element_idFunction:
-	ELEMENT_ID LEFT_PAREN elementReference RIGHT_PAREN;
+propertyTypeDef:
+	propertyName (separator typed)? separator propertyValueType;
 
-literal: signedNumericLiteral | generalLiteral;
+propertyValueType: valueType;
 
-generalLiteral:
-	predefinedTypeLiteral
-	| listLiteral
-	| setLiteral
-	| multisetLiteral
-	| orderedSetLiteral
-	| mapLiteral
-	| recordLiteral;
+bindingTableType:
+	(BINDING separator)? TABLE separator fieldTypesSpec;
 
-predefinedTypeLiteral:
-	TRUTH_VALUE
-	| characterStringLiteral
-	| byteStringLiteral
-	| temporalLiteral
-	| durationLiteral
-	| NULL;
+valueType: predefinedType | constructedType | dynamicUnionType;
 
-unsignedLiteral: unsignedNumericLiteral | generalLiteral;
-
-characterStringLiteral:
-	singleQuotedCharacterSequence
-	| doubleQuotedCharacterSequence;
-
-unbrokenCharacterStringLiteral:
-	unbrokenSingleQuotedCharacterSequence
-	| unbrokenDoubleQuotedCharacterSequence;
-
-singleQuotedCharacterSequence:
-	unbrokenSingleQuotedCharacterSequence (
-		separator unbrokenSingleQuotedCharacterSequence
-	)*;
-
-doubleQuotedCharacterSequence:
-	unbrokenDoubleQuotedCharacterSequence (
-		separator unbrokenDoubleQuotedCharacterSequence
-	)*;
-
-unbrokenSingleQuotedCharacterSequence:
-	QUOTE (characterRepresentation)* QUOTE;
-
-unbrokenDoubleQuotedCharacterSequence:
-	DOUBLE_QUOTE (characterRepresentation)* DOUBLE_QUOTE;
-
-unbrokenAccentQuotedCharacterSequence:
-	GRAVE_ACCENT (characterRepresentation)* GRAVE_ACCENT;
-
-characterRepresentation:
-	CIRCUMFLEX
-	| CARRIAGE_RETURN
-	| NEW_LINE
-	| TAB
-	| SPACE
-	| ESCAPED_CHAR;
-
-byteStringLiteral:
-	BYTE_STRING_START QUOTE (SPACE)* (
-		DIGIT16 (SPACE)* DIGIT16 (SPACE)*
-	)* QUOTE (
-		separator QUOTE (SPACE)* (
-			DIGIT16 (SPACE)* DIGIT16 (SPACE)*
-		)* QUOTE
-	)*;
-
-numericLiteral: signedNumericLiteral | unsignedNumericLiteral;
-
-signedNumericLiteral: sign? unsignedNumericLiteral;
-
-unsignedNumericLiteral:
-	exactNumericLiteral
-	| approximateNumericLiteral;
-
-exactNumericLiteral:
-	unsignedInteger
-	| unsignedDecimalInteger PERIOD (unsignedDecimalInteger)?
-	| PERIOD unsignedDecimalInteger;
-
-sign: (PLUS | MINUS);
-
-unsignedInteger:
-	unsignedDecimalInteger
-	| unsignedHexadecimalInteger
-	| unsignedOctalInteger
-	| unsignedBinaryInteger;
-
-unsignedDecimalInteger: DIGIT10 ((UNDERSCORE? DIGIT10)*);
-
-unsignedBinaryInteger: START2 ((UNDERSCORE? DIGIT2)*);
-
-unsignedOctalInteger: START8 ((UNDERSCORE? DIGIT8)*);
-
-unsignedHexadecimalInteger: START16 ((UNDERSCORE? DIGIT16)*);
-
-signedDecimalInteger: (sign)? unsignedDecimalInteger;
-
-approximateNumericLiteral:
-	exactNumericLiteral ESEPARATOR signedDecimalInteger;
-
-temporalLiteral: dateLiteral | timeLiteral | datetimeLiteral;
-
-dateLiteral: DATE dateString;
-
-timeLiteral: TIME timeString;
-
-datetimeLiteral: (DATETIME | TIMESTAMP) datetimeString;
-
-dateString: unbrokenCharacterStringLiteral;
-
-timeString: unbrokenCharacterStringLiteral;
-
-datetimeString: unbrokenCharacterStringLiteral;
-
-durationLiteral: DURATION durationString | intervalLiteral;
-
-intervalLiteral:
-	DIGIT10+ SPACE+ (yearMonthLiteral | dayTimeLiteral);
-
-yearMonthLiteral: DIGIT10+ SPACE+ (YEAR | MONTH);
-
-dayTimeLiteral:
-	DIGIT10+ SPACE+ (DAY | HOUR | MINUTE | SECOND) fractionalSecondsLiteral?;
-
-fractionalSecondsLiteral: PERIOD DIGIT10+;
-
-durationString: unbrokenCharacterStringLiteral;
-
-listLiteral: listValueConstructorByEnumeration;
-
-setLiteral: setValueConstructorByEnumeration;
-
-multisetLiteral: multisetValueConstructorByEnumeration;
-
-orderedSetLiteral: orderedSetValueConstructorByEnumeration;
-
-mapLiteral: mapValueConstructorByEnumeration;
-
-recordLiteral: recordValueConstructorByEnumeration;
-
-valueType:
-	ANY
-	| predefinedType
-	| graphElementType
-	| valueType (LIST | ARRAY)
-	| valueType MULTISET
-	| valueType SET
-	| valueType ORDERED SET
-	| mapValueType
-	| recordValueType
-	| graphTypeExpression
-	| bindingTableTypeExpression
-	| NOTHING;
-
-ofValueType: (DOUBLE_COLON | OF)? valueType;
+typed: DOUBLE_COLON | (TYPED separator);
 
 predefinedType:
-	BOOL_TYPE
-	| characterStringType
+	booleanType
+	| charStringType
 	| byteStringType
 	| numericType
-	| temporalType;
+	| temporalType
+	| refValueType
+	| pathValueType;
 
-characterStringType:
-	STRING_TYPE (LEFT_PAREN unsignedDecimalInteger RIGHT_PAREN)?;
+booleanType: (BOOL | BOOLEAN) (separator notNull)?;
+
+charStringType:
+	(STRING | VARCHAR) (
+		LEFT_PAREN separator? maxLength separator? RIGHT_PAREN
+	)? (separator notNull)?;
 
 byteStringType:
 	BYTES (
-		LEFT_PAREN (unsignedDecimalInteger COMMA)? unsignedDecimalInteger RIGHT_PAREN
-	)?
-	| BINARY (LEFT_PAREN unsignedDecimalInteger RIGHT_PAREN)?
-	| VARBINARY (LEFT_PAREN unsignedDecimalInteger RIGHT_PAREN)?;
+		LEFT_PAREN separator? (
+			minLength separator? COMMA separator?
+		)? maxLength separator? RIGHT_PAREN
+	)? (separator notNull)?
+	| BINARY (
+		LEFT_PAREN separator? fixedLength separator? RIGHT_PAREN
+	)? (separator notNull)?
+	| VARBINARY (
+		LEFT_PAREN separator? maxLength separator? RIGHT_PAREN
+	)? (separator notNull)?;
+
+minLength: UNSIGNED_INT;
+
+maxLength: UNSIGNED_INT;
+
+fixedLength: UNSIGNED_INT;
 
 numericType: exactNumericType | approximateNumericType;
 
@@ -2031,155 +1213,1378 @@ exactNumericType:
 	| decimalExactNumericType;
 
 binaryExactNumericType:
-	binaryExactSignedNumericType
-	| binaryExactUnsignedNumericType;
+	signedBinaryExactNumericType
+	| unsignedBinaryExactNumericType;
 
-binaryExactSignedNumericType:
-	INT8
-	| INT16
-	| INT32
-	| INT64
-	| INT128
-	| INT256
-	| SMALLINT
-	| INT (LEFT_PAREN unsignedDecimalInteger RIGHT_PAREN)?
+signedBinaryExactNumericType:
+	INT8 (separator notNull)?
+	| INT16 (separator notNull)?
+	| INT32 (separator notNull)?
+	| INT64 (separator notNull)?
+	| INT128 (separator notNull)?
+	| INT256 (separator notNull)?
+	| SMALLINT (separator notNull)?
+	| INT (
+		LEFT_PAREN separator? precision separator? RIGHT_PAREN
+	)? (separator notNull)?
+	| BIGINT (separator notNull)?
+	| (SIGNED separator)? verboseBinaryExactNumericType;
+
+unsignedBinaryExactNumericType:
+	UINT8 (separator notNull)?
+	| UINT16 (separator notNull)?
+	| UINT32 (separator notNull)?
+	| UINT64 (separator notNull)?
+	| UINT128 (separator notNull)?
+	| UINT256 (separator notNull)?
+	| USMALLINT (separator notNull)?
+	| UINT (
+		LEFT_PAREN separator? precision separator? RIGHT_PAREN
+	)? (separator notNull)?
+	| UBIGINT (separator notNull)?
+	| UNSIGNED separator verboseBinaryExactNumericType;
+
+verboseBinaryExactNumericType:
+	INTEGER8 (separator notNull)?
+	| INTEGER16 (separator notNull)?
+	| INTEGER32 (separator notNull)?
+	| INTEGER64 (separator notNull)?
+	| INTEGER128 (separator notNull)?
+	| INTEGER256 (separator notNull)?
+	| SMALL separator INTEGER (separator notNull)?
+	| INTEGER (
+		LEFT_PAREN separator? precision separator? RIGHT_PAREN
+	)? (separator notNull)?
+	| BIG separator INTEGER (separator? notNull)?;
+
+decimalExactNumericType:
+	(DECIMAL | DEC) (
+		LEFT_PAREN separator? precision (
+			separator? COMMA separator? scale
+		)? separator? RIGHT_PAREN
+	)? (separator notNull)?;
+
+precision: UNSIGNED_DECIMAL_INT;
+
+scale: UNSIGNED_DECIMAL_INT;
+
+approximateNumericType:
+	FLOAT16 (separator notNull)?
+	| FLOAT32 (separator notNull)?
+	| FLOAT64 (separator notNull)?
+	| FLOAT128 (separator notNull)?
+	| FLOAT256 (separator notNull)?
+	| FLOAT (
+		LEFT_PAREN separator? precision (
+			separator? COMMA separator? scale
+		)? separator? RIGHT_PAREN
+	)? (separator notNull)?
+	| REAL (separator notNull)?
+	| DOUBLE (separator PRECISION)? (separator notNull);
+
+temporalType: temporalInstantType | temporalDurationType;
+
+temporalInstantType:
+	dateTimeType
+	| localDateTimeType
+	| dateType
+	| timeType
+	| localTimeType;
+
+temporalDurationType: durationType;
+
+dateTimeType:
+	ZONED separator DATETIME (separator notNull)?
+	| TIMESTAMP separator WITH separator TIMEZONE (
+		separator notNull
+	)?;
+
+localDateTimeType:
+	LOCAL separator DATETIME (separator notNull)?
+	| TIMESTAMP (separator? WITHOUT separator TIMEZONE) (
+		separator notNull
+	)?;
+
+dateType: DATE (separator notNull)?;
+
+timeType:
+	ZONED separator TIME (separator notNull)?
+	| TIME separator WITH separator TIMEZONE (separator notNull)?;
+
+localTimeType:
+	LOCAL separator TIME (separator notNull)?
+	| TIME separator WITHOUT separator TIMEZONE (
+		separator notNull
+	)?;
+
+durationType: DURATION (separator notNull)?;
+
+refValueType:
+	graphRefValueType
+	| bindingTableRefValueType
+	| nodeRefValueType
+	| edgeRefValueType;
+
+graphRefValueType:
+	openGraphRefValueType
+	| closedGraphRefValueType;
+
+openGraphRefValueType:
+	OPEN (separator PROPERTY)? separator GRAPH (
+		separator notNull
+	)?;
+
+closedGraphRefValueType: graphTypeSpec (separator notNull)?;
+
+bindingTableRefValueType: bindingTableType (separator notNull)?;
+
+nodeRefValueType: openNodeRefValueType | closedNodeRefValueType;
+
+openNodeRefValueType:
+	(OPEN separator)? nodeSynonym (separator notNull)?;
+
+closedNodeRefValueType: edgeTypeDef (separator notNull)?;
+
+edgeRefValueType: openEdgeRefValueType | closedEdgeRefValueType;
+
+openEdgeRefValueType:
+	(OPEN separator)? edgeSynonym (separator notNull)?;
+
+closedEdgeRefValueType: edgeTypeDef (separator notNull)?;
+
+constructedType: listValueType | recordType;
+
+listValueType:
+	listValueTypeName LEFT_ANGLE_BRACKET predefinedType RIGHT_ANGLE_BRACKET (
+		LEFT_BRACKET separator? maxLength separator? RIGHT_BRACKET
+	)? (separator notNull)?
+	| predefinedType separator listValueTypeName (
+		LEFT_BRACKET separator? maxLength separator? RIGHT_BRACKET
+	)? (separator notNull)?;
+
+listValueTypeName: (GROUP separator)? listValueTypeNameSynonym;
+
+listValueTypeNameSynonym: LIST | ARRAY;
+
+recordType:
+	(OPEN separator)? RECORD (separator notNull)?
+	| (RECORD separator)? fieldTypesSpec (separator notNull)?;
+
+fieldTypesSpec:
+	LEFT_BRACE separator? fieldTypeList? separator? RIGHT_BRACE;
+
+fieldTypeList:
+	fieldType (separator? COMMA separator? fieldType)+;
+
+dynamicUnionType:
+	openDynamicUnionType
+	| dynamicPropertyValueType
+	| closedDynamicUnionType;
+
+openDynamicUnionType: ANY;
+
+dynamicPropertyValueType:
+	(ANY separator)? PROPERTY separator VALUE;
+
+closedDynamicUnionType:
+	ANY separator LEFT_ANGLE_BRACKET separator? componentTypeList separator? RIGHT_ANGLE_BRACKET;
+
+componentTypeList:
+	componentType (
+		separator? VERTICAL_BAR separator? componentType
+	)*;
+
+componentType: valueType;
+
+pathValueType: PATH;
+
+notNull: NOT separator NULL;
+
+fieldType: fieldName (separator typed) separator valueType;
+
+schemaRef:
+	absoluteCatalogSchemaRef
+	| relativeCatalogSchemaRef
+	| refParameter;
+
+absoluteCatalogSchemaRef:
+	SOLIDUS
+	| absoluteDirectoryPath schemaName;
+
+catalogSchemaParentAndName: absoluteDirectoryPath schemaName;
+
+relativeCatalogSchemaRef:
+	predefinedSchemaRef
+	| relativeDirectoryPath schemaName;
+
+predefinedSchemaRef: HOME_SCHEMA | CURRENT_SCHEMA | PERIOD;
+
+absoluteDirectoryPath: SOLIDUS simpleDirectoryPath?;
+
+relativeDirectoryPath:
+	DOUBLE_PERIOD (
+		(SOLIDUS DOUBLE_PERIOD)* SOLIDUS simpleDirectoryPath?
+	)?;
+
+simpleDirectoryPath: (directoryName SOLIDUS)+;
+
+graphRef:
+	catalogObjectParentRef separator graphName
+	| delimitedGraphName
+	| homeGraph
+	| refParameter;
+
+catalogGraphParentAndName:
+	(catalogObjectParentRef separator)? graphName;
+
+homeGraph: HOME_PROPERTY_GRAPH | HOME_GRAPH;
+
+graphTypeRef: catalogGraphTypeParentAndName | refParameter;
+
+catalogGraphTypeParentAndName:
+	(catalogObjectParentRef separator)? graphTypeName;
+
+bindingTableRef:
+	catalogObjectParentRef bindingTableName
+	| delimitedBindingTableName
+	| refParameter;
+
+catalogBindingTableParentAndName:
+	(catalogObjectParentRef separator)? bindingTableName;
+
+procedureRef: catalogProcedureParentAndName | refParameter;
+
+catalogProcedureParentAndName:
+	(catalogObjectParentRef separator)? procedureName;
+
+catalogObjectParentRef:
+	schemaRef SOLIDUS? (objectName PERIOD)+
+	| (objectName PERIOD)+;
+
+refParameter: parameter;
+
+externalObjectRef:;
+// TODO needs more work!
+
+// predicates grammar
+searchCondition: booleanValueExpr;
+
+predicate:
+	comparisonPredicate
+	| existsPredicate
+	| nullPredicate
+	| valueTypePredicate
+	| normalizedPredicate
+	| directedPredicate
+	| labeledPredicate
+	| sourceOrDestinationPredicate
+	| allDifferentPredicate
+	| samePredicate
+	| propertyExistsPredicate;
+
+comparisonPredicate:
+	comparisonPredicand separator? comparisonPredicatePart2;
+
+comparisonPredicatePart2:
+	comparisonOperator separator? comparisonPredicand;
+
+comparisonOperator:
+	EQUALS
+	| NOT_EQUALS
+	| LESS_THAN
+	| GREATER_THAN
+	| LESS_THAN_OR_EQUALS
+	| GREATER_THAN_OR_EQUALS;
+
+comparisonPredicand: commonValueExpr | booleanPredicand;
+
+existsPredicate:
+	EXISTS separator? (
+		LEFT_BRACE separator? graphPattern RIGHT_BRACE
+		| LEFT_PAREN separator? graphPattern separator? RIGHT_PAREN
+		| LEFT_BRACE separator? matchStatmentBlock separator? RIGHT_BRACE
+		| LEFT_PAREN separator? matchStatmentBlock separator? RIGHT_PAREN
+		| nestedQuerySpec
+	);
+
+nullPredicate: valueExprPrimary separator nullPredicatePart2;
+
+nullPredicatePart2: IS (separator NOT)? separator NULL;
+
+valueTypePredicate:
+	valueExprPrimary separator valueTypePredicatePart2;
+
+valueTypePredicatePart2:
+	IS (separator NOT)? separator typed separator valueType;
+
+normalizedPredicate:
+	stringValueExpr separator normalizedPredicatePart2;
+
+normalizedPredicatePart2:
+	IS (separator NOT)? (separator normalForm)? NORMALIZED;
+
+directedPredicate: elementVarRef separator directedPredicate;
+
+directedPredicatePart2: IS (separator NOT)? DIRECTED;
+
+labeledPredicate: elementVarRef separator;
+
+labeledPredicatePart2: isLabeledOrColon separator labelExpr;
+
+isLabeledOrColon: IS (separator NOT)? separator LABELED | COLON;
+
+sourceOrDestinationPredicate:
+	nodeRef separator sourcePredicatePart2
+	| nodeRef separator destinationPredicatePart2;
+
+nodeRef: elementVarRef;
+
+sourcePredicatePart2:
+	IS (separator NOT)? separator SOURCE separator OF separator edgeRef;
+
+destinationPredicatePart2:
+	IS (separator NOT)? separator DESTINATION OF separator edgeRef;
+
+edgeRef: elementVarRef;
+
+allDifferentPredicate:
+	ALL_DIFFERENT LEFT_PAREN separator? elementVarRef (
+		separator? COMMA separator? elementVarRef
+	)+ separator? RIGHT_PAREN;
+
+samePredicate:
+	SAME LEFT_PAREN separator? elementVarRef (
+		separator? COMMA separator? elementVarRef
+	)+ separator? RIGHT_PAREN;
+
+propertyExistsPredicate:
+	PROPERTY_EXISTS LEFT_PAREN separator? elementVarRef separator? COMMA separator? propertyName
+		separator? RIGHT_PAREN;
+
+// value expression grammar
+valueSpec: literal | parameterValueSpec;
+
+unsignedValueSpec: unsignedLiteral | parameterValueSpec;
+
+unsignedIntSpec: UNSIGNED_INT | parameter;
+
+parameterValueSpec: parameter | predefinedParameter;
+
+predefinedParameter: CURRENT_USER;
+
+valueExpr: commonValueExpr | booleanValueExpr;
+
+commonValueExpr:
+	numericValueExpr
+	| stringValueExpr
+	| dateTimeValueExpr
+	| durationValueExpr
+	| listValueExpr
+	| recordValueExpr
+	| pathValueExpr
+	| refValueExpr;
+
+refValueExpr:
+	graphRefValueExpr
+	| bindingTableRefValueExpr
+	| nodeRefValueExpr
+	| edgeRefValueExpr;
+
+graphRefValueExpr:
+	(PROPERTY separator)? GRAPH separator graphExpr
+	| valueExprPrimary;
+
+bindingTableRefValueExpr:
+	(BINDING separator)? TABLE separator bindingTableExpr
+	| valueExprPrimary;
+
+nodeRefValueExpr: valueExprPrimary;
+
+edgeRefValueExpr: valueExprPrimary;
+
+recordValueExpr: valueExprPrimary;
+
+aggregatingValueExpr: valueExpr;
+
+booleanValueExpr:
+	booleanTerm
+	| booleanTerm separator OR separator booleanValueExpr
+	| booleanTerm separator XOR separator booleanValueExpr;
+
+booleanTerm: booleanFactor | booleanTerm AND booleanFactor;
+
+booleanFactor: (NOT separator)? booleanTest;
+
+booleanTest:
+	booleanPrimary (separator IS (separator NOT)? truthValue)?;
+
+truthValue: TRUE | FALSE | UNKNOWN;
+
+booleanPrimary: predicate | booleanPredicand;
+
+booleanPredicand:
+	paranthisedBooleanValueExpr
+	| nonParenthesizedValueExprPrimary;
+
+paranthisedBooleanValueExpr:
+	LEFT_PAREN separator? booleanValueExpr separator? RIGHT_PAREN;
+
+numericValueExpr:
+	term separator? PLUS separator? numericValueExpr
+	| term separator? MINUS separator? numericValueExpr;
+
+term:
+	factor separator? ASTERISK separator? term
+	| factor separator? SOLIDUS separator? term;
+
+factor: SIGN? numericPrimary;
+
+numericPrimary: valueExprPrimary | numericValueFunction;
+
+valueExprPrimary:
+	parenthesizedValueExpr
+	| nonParenthesizedValueExprPrimary;
+
+parenthesizedValueExpr:
+	LEFT_PAREN separator? valueExpr separator? RIGHT_PAREN;
+
+nonParenthesizedValueExprPrimary:
+	nonParenthesizedValueExprPrimarySpecialCase
+	| bindingVarRef;
+
+nonParenthesizedValueExprPrimarySpecialCase:
+	unsignedValueSpec
+	| aggregateFunction
+	| collectionValueConstructor
+	| valueQueryExpr
+	| caseExpr
+	| letValueExpr
+	| castSpec
+	| elementIdFunction;
+
+collectionValueConstructor:
+	listValueConstructor
+	| recordValueConstructor
+	| pathValueConstructor;
+
+numericValueFunction:
+	lengthExpr
+	| absoluteValueExpr
+	| modulusExpr
+	| trigonometricFunction
+	| logarithmFunction
+	| exponentialFunction
+	| powerFunction
+	| squareRootFunciton
+	| floorFunction
+	| ceilingFunction;
+
+lengthExpr: charLengthExpr | byteLengthExpr | pathLengthExpr;
+
+charLengthExpr:
+	(CHAR_LENGTH | CHARACTER_LENGTH) LEFT_PAREN separator? charStringValueExpr separator?
+		RIGHT_PAREN;
+
+byteLengthExpr:
+	(BYTE_LENGTH | OCTET_LENGTH) LEFT_PAREN separator? byteStringValueExpr separator? RIGHT_PAREN;
+
+pathLengthExpr:
+	PATH_LENGTH LEFT_PAREN separator? pathValueExpr separator? RIGHT_PAREN;
+
+absoluteValueExpr:
+	ABS LEFT_PAREN separator? numericValueExpr separator? RIGHT_PAREN;
+
+modulusExpr:
+	MOD LEFT_PAREN separator? numericValueExprDividen separator? COMMA separator?
+		numericValueExprDivisor separator? RIGHT_PAREN;
+
+numericValueExprDividen: numericValueExpr;
+
+numericValueExprDivisor: numericValueExpr;
+
+trigonometricFunction:
+	trigonometricFunctionName LEFT_PAREN separator? numericValueExpr separator? RIGHT_PAREN;
+
+trigonometricFunctionName:
+	SIN
+	| COS
+	| TAN
+	| COT
+	| SINH
+	| COSH
+	| TANH
+	| ASIN
+	| ACOS
+	| ATAN
+	| DEGREES
+	| RADIANS;
+
+logarithmFunction:
+	generalLogarithmFunction
+	| commonLogarithmFunction
+	| naturalLogarithmFunction;
+
+generalLogarithmFunction:
+	MOD LEFT_PAREN separator? generalLogarithmBase separator? COMMA separator?
+		generalLogarithmArgument separator? RIGHT_PAREN;
+
+generalLogarithmBase: numericValueExpr;
+
+generalLogarithmArgument: numericValueExpr;
+
+commonLogarithmFunction:
+	LOG10 LEFT_PAREN separator? numericValueExpr separator? RIGHT_PAREN;
+
+naturalLogarithmFunction:
+	LN LEFT_PAREN separator? numericValueExpr separator? RIGHT_PAREN;
+
+exponentialFunction:
+	EXP LEFT_PAREN separator? numericValueExpr separator? RIGHT_PAREN;
+
+powerFunction:
+	POWER LEFT_PAREN separator? numericValueExprBase separator? COMMA separator?
+		numericValueExprExponent separator? RIGHT_PAREN;
+
+numericValueExprBase: numericValueExpr;
+
+numericValueExprExponent: numericValueExpr;
+
+squareRootFunciton:
+	SQRT LEFT_PAREN separator? numericValueExpr separator? RIGHT_PAREN;
+
+floorFunction:
+	FLOOR LEFT_PAREN separator? numericValueExpr separator? RIGHT_PAREN;
+
+ceilingFunction:
+	(CEIL | CEILING) LEFT_PAREN separator? numericValueExpr separator? RIGHT_PAREN;
+
+stringValueExpr: charStringValueExpr | byteStringValueExpr;
+
+charStringValueExpr: charStringConcatenation | charStringFactor;
+
+charStringConcatenation:
+	charStringFactor CONCATENATION charStringValueExpr;
+
+charStringFactor: charStringPrimary;
+
+charStringPrimary: valueExprPrimary | stringValueFunction;
+
+byteStringValueExpr: byteStringConcatenation | byteStringFactor;
+
+byteStringFactor: byteStringPrimary;
+
+byteStringPrimary: valueExprPrimary | stringValueFunction;
+
+byteStringConcatenation:
+	byteStringFactor CONCATENATION byteStringValueExpr;
+
+stringValueFunction: charStringFunction | byteStringFunction;
+
+charStringFunction:
+	foldFunction
+	| trimFunction
+	| normalizeFunction;
+
+foldFunction:
+	(UPPER | LOWER) LEFT_PAREN separator? charStringValueExpr separator? RIGHT_PAREN;
+
+trimFunction: singleCharTrimFunction | multiCharTrimFunction;
+
+singleCharTrimFunction:
+	TRIM LEFT_PAREN separator? trimOperands separator? RIGHT_PAREN;
+
+multiCharTrimFunction:
+	(BTRIM | LTRIM | RTRIM) LEFT_PAREN separator? trimSource (
+		separator? COMMA separator? trimCharString
+	) separator? RIGHT_PAREN;
+
+trimOperands:
+	(
+		(trimSpec separator)? (trimCharString separator)? FROM separator
+	)? trimSource;
+
+trimSource: charStringValueExpr;
+
+trimSpec: LEADING | TRAILING | BOTH;
+
+trimCharString: charStringValueExpr;
+
+normalizeFunction:
+	NORMALIZE LEFT_PAREN separator? charStringValueExpr (
+		separator? COMMA separator? normalForm
+	) separator? RIGHT_PAREN;
+
+normalForm: NFC | NFD | NFKC | NFKD;
+
+byteStringFunction: byteStrinTrimFunction;
+
+byteStrinTrimFunction:
+	TRIM LEFT_PAREN separator? byteStringTrimOperands separator? RIGHT_PAREN;
+
+byteStringTrimOperands:
+	(
+		(trimSpec separator)? (trimByteString separator)? FROM separator
+	)? byteStringTrimSource;
+
+byteStringTrimSource: byteStringValueExpr;
+
+trimByteString: byteStringValueExpr;
+
+stringLength: numericValueExpr;
+
+dateTimeValueExpr:
+	dateTimeTerm
+	| durationValueExpr PLUS dateTimeTerm
+	| dateTimeValueExpr PLUS durationTerm
+	| dateTimeValueExpr MINUS durationTerm;
+
+dateTimeTerm: dateTimeFactor;
+
+dateTimeFactor: dateTimePrimary;
+
+dateTimePrimary: valueExprPrimary | dateTimeValueFunction;
+
+dateTimeValueFunction:
+	dateFunction
+	| timeFunction
+	| dateTimeFunction
+	| localTimeFunction
+	| localDatetimeFunction;
+
+dateFunction:
+	CURRENT_DATE
+	| DATE LEFT_PAREN separator? dateFunctionParameters? separator? RIGHT_PAREN;
+
+timeFunction:
+	CURRENT_TIME
+	| ZONED_TIME LEFT_PAREN separator? timeFunctionParameters? separator? RIGHT_PAREN;
+
+localTimeFunction:
+	LOCAL_TIME LEFT_PAREN separator? timeFunctionParameters? separator? RIGHT_PAREN?;
+
+dateTimeFunction:
+	CURRENT_TIMESTAMP
+	| ZONED_DATETIME LEFT_PAREN separator? dateTimeFunctionParameters? separator? RIGHT_PAREN;
+
+localDatetimeFunction:
+	LOCAL_TIMESTAMP
+	| LOCAL_DATETIME LEFT_PAREN separator? dateTimeFunctionParameters? separator? RIGHT_PAREN;
+
+dateFunctionParameters: dateString | recordValueConstructor;
+
+timeFunctionParameters: timeString | recordValueConstructor;
+
+dateTimeFunctionParameters:
+	dateTimeString
+	| recordValueConstructor;
+
+durationValueExpr:
+	durationTerm
+	| durationValueExpr separator? PLUS separator? durationTerm
+	| durationValueExpr separator? MINUS separator? durationTerm
+	| dateTimeSubtraction;
+
+dateTimeSubtraction:
+	DURATION_BETWEEN LEFT_PAREN separator? dateTimeSubtractionParameters separator? RIGHT_PAREN;
+
+dateTimeSubtractionParameters:
+	dateTimeValueExpr separator? COMMA separator? dateTimeValueExpr;
+
+durationTerm:
+	durationFactor
+	| durationTerm separator? ASTERISK separator? factor
+	| durationTerm separator? SOLIDUS separator? factor
+	| term separator? ASTERISK separator? durationFactor;
+
+durationFactor: (SIGN)? durationPrimary;
+
+durationPrimary: valueExprPrimary | durationValueFunction;
+
+durationValueExpr1: durationValueExpr;
+
+durationTerm1: durationTerm;
+
+durationTerm2: durationTerm;
+
+dateTimeValueExpr1: dateTimeValueExpr;
+
+dateTimeValueExpr2: dateTimeValueExpr;
+
+durationValueFunction:
+	durationFunction
+	| durationAbsoluteValueFunction;
+
+durationFunction:
+	DURATION LEFT_PAREN separator? durationFunctionParameters separator? RIGHT_PAREN;
+
+durationFunctionParameters:
+	durationString
+	| recordValueConstructor;
+
+durationAbsoluteValueFunction:
+	ABS LEFT_PAREN separator? durationValueExpr separator RIGHT_PAREN;
+
+listValueExpr: listConcatenation | listPrimary;
+
+listConcatenation:
+	listPrimary separator? CONCATENATION separator? listValueExpr;
+
+listPrimary: listValueFunction | valueExprPrimary;
+
+listValueFunction: trimListFunction separator? elementsFunction;
+
+trimListFunction:
+	TRIM LEFT_PAREN separator? listValueExpr separator? COMMA separator? numericValueExpr separator?
+		RIGHT_PAREN;
+
+elementsFunction:
+	ELEMENTS LEFT_PAREN separator? pathValueExpr separator? RIGHT_PAREN;
+
+listValueConstructor: listValueConstructorByEnumeration;
+
+listValueConstructorByEnumeration:
+	LEFT_BRACKET separator? listValueTypeName separator? RIGHT_BRACKET LEFT_BRACKET separator?
+		listElementList separator? RIGHT_BRACKET;
+
+listElementList:
+	listElement (separator? COMMA separator? listElement)*;
+
+listElement: valueExpr;
+
+recordValueConstructor: (RECORD separator)? fieldsSpec;
+
+fieldsSpec:
+	LEFT_BRACE separator? (fieldList)? separator? RIGHT_BRACE;
+
+fieldList: field (separator? COMMA separator? field)*;
+
+field: fieldName separator? COLON separator? valueExpr;
+
+pathValueExpr: pathValueConcatenation | pathValuePrimary;
+
+pathValueConcatenation:
+	pathValuePrimary separator? CONCATENATION separator? pathValueExpr;
+
+pathValuePrimary: valueExprPrimary;
+
+pathValueConstructor: pathValueConstructorByEnumeration;
+
+pathValueConstructorByEnumeration:
+	PATH LEFT_PAREN separator? pathElementList separator? RIGHT_PAREN;
+
+pathElementList:
+	pathElementListStart (separator pathElementListStep)?;
+
+pathElementListStart: nodeRefValueExpr;
+
+pathElementListStep:
+	COMMA separator? edgeRefValueExpr separator? COMMA separator? nodeRefValueExpr;
+
+propertyRef: propertySource PERIOD propertyName;
+
+propertySource:
+	nodeRefValueExpr
+	| edgeRefValueExpr
+	| recordValueExpr;
+
+valueQueryExpr: VALUE separator? nestedQuerySpec;
+
+caseExpr: caseAbbreviation | caseSpecification;
+
+caseAbbreviation:
+	NULLIF LEFT_PAREN separator? valueExpr separator? COMMA separator? valueExpr separator?
+		RIGHT_PAREN
+	| COALESCE LEFT_PAREN separator? valueExpr (
+		separator? COMMA separator? valueExpr
+	)* separator? RIGHT_PAREN;
+
+caseSpecification: simpleCase | searchedCase;
+
+simpleCase:
+	CASE separator caseOperand separator simpleWhenClause (
+		separator elseClause
+	)? separator END;
+
+searchedCase:
+	CASE separator searchedWhenClause (separator elseClause)? separator END;
+
+simpleWhenClause:
+	WHEN separator whenOperandList separator THEN separator result;
+
+searchedWhenClause:
+	WHEN separator searchCondition separator THEN separator result;
+
+elseClause: ELSE result;
+
+caseOperand: nonParenthesizedValueExprPrimary | elementVarRef;
+
+whenOperandList:
+	whenOperand (separator? COMMA separator? whenOperand)*;
+
+whenOperand:
+	nonParenthesizedValueExprPrimary
+	| comparisonPredicatePart2
+	| nullPredicatePart2
+	| valueTypePredicatePart2
+	| directedPredicatePart2
+	| labeledPredicatePart2
+	| sourcePredicatePart2
+	| destinationPredicatePart2;
+
+result: resultExpr | NULL;
+
+resultExpr: valueExpr;
+
+castSpec:
+	CAST LEFT_PAREN separator? castOperand separator AS separator castTarget separator? RIGHT_PAREN;
+
+castOperand: valueExpr;
+
+castTarget: valueType;
+
+elementIdFunction:
+	ELEMENT_ID LEFT_PAREN separator? elementVarRef separator? RIGHT_PAREN;
+
+letValueExpr:
+	LET separator? letVarDefList separator? IN separator? valueExpr separator? END;
+
+// lexical grammar
+
+literal: SIGNED_NUMERIC_LITERAL | generalLiteral;
+
+generalLiteral:
+	predefinedTypeLiteral
+	| listLiteral
+	| recordLiteral;
+
+predefinedTypeLiteral:
+	booleanLiteral
+	| characterStringLiteral
+	| BYTE_STRING_LITERAL
+	| temporalLiteral
+	| durationLiteral
+	| nullLiteral;
+
+unsignedLiteral: UNSIGNED_NUMERIC_LITERAL | generalLiteral;
+
+booleanLiteral: TRUE | FALSE | UNKNOWN;
+
+characterStringLiteral:
+	singleQuotedCharacterSequence
+	| doubleQuotedCharacterSequence
+	| accentQuotedCharacterSequence;
+
+unbrokenCharacterStringLiteral:
+	noEscape? unbrokenSingleQuotedCharacterSequence
+	| noEscape? unbrokenDoubleQuotedCharacterSequence;
+
+singleQuotedCharacterSequence:
+	noEscape? unbrokenSingleQuotedCharacterSequence (
+		separator? VERTICAL_BAR separator? unbrokenSingleQuotedCharacterSequence
+	)*;
+
+doubleQuotedCharacterSequence:
+	noEscape? unbrokenDoubleQuotedCharacterSequence (
+		separator? VERTICAL_BAR separator? unbrokenDoubleQuotedCharacterSequence
+	)*;
+
+accentQuotedCharacterSequence:
+	noEscape? unbrokenAccentQuotedCharacterSequence (
+		separator? VERTICAL_BAR separator? unbrokenAccentQuotedCharacterSequence
+	)*;
+
+noEscape: COMMERCIAL_AT;
+
+unbrokenSingleQuotedCharacterSequence:
+	SINGLE_QUOTED_STRING_LITERAL;
+
+unbrokenDoubleQuotedCharacterSequence:
+	DOUBLE_QUOTED_STRING_LITERAL;
+
+unbrokenAccentQuotedCharacterSequence:
+	ACCENT_QUOTED_STRING_LITERAL;
+
+temporalLiteral:
+	dateLiteral
+	| timeLiteral
+	| dateTimeLiteral
+	| sqlDateTimeLiteral;
+
+dateLiteral: DATE separator unbrokenCharacterStringLiteral;
+
+timeLiteral: TIME separator unbrokenCharacterStringLiteral;
+
+dateTimeLiteral:
+	DATETIME separator unbrokenCharacterStringLiteral
+	| TIMESTAMP separator unbrokenCharacterStringLiteral;
+
+dateString: unbrokenCharacterStringLiteral;
+
+timeString: unbrokenCharacterStringLiteral;
+
+dateTimeString: unbrokenCharacterStringLiteral;
+
+sqlDateTimeLiteral:
+	DATE separator QUOTE FOUR_DIGIT MINUS DOUBLE_DIGIT MINUS DOUBLE_DIGIT QUOTE
+	| TIME separator QUOTE DOUBLE_DIGIT COLON DOUBLE_DIGIT COLON DOUBLE_DIGIT QUOTE
+	| TIMESTAMP separator QUOTE FOUR_DIGIT MINUS DOUBLE_DIGIT MINUS DOUBLE_DIGIT separator
+		DOUBLE_DIGIT COLON DOUBLE_DIGIT COLON DOUBLE_DIGIT QUOTE
+	| DATETIME separator QUOTE FOUR_DIGIT MINUS DOUBLE_DIGIT MINUS DOUBLE_DIGIT separator
+		DOUBLE_DIGIT COLON DOUBLE_DIGIT COLON DOUBLE_DIGIT QUOTE;
+
+durationLiteral:
+	DURATION separator durationString
+	| sqlIntervalLiteral;
+
+durationString: unbrokenCharacterStringLiteral;
+
+sqlIntervalLiteral: UNSIGNED_INT separator? sqlIntervalType;
+
+sqlIntervalType:
+	INTERVAL_DAY
+	| INTERVAL_WEEK
+	| INTERVAL_MONTH
+	| INTERVAL_YEAR;
+
+nullLiteral: NULL;
+
+listLiteral: listValueConstructorByEnumeration;
+
+recordLiteral: recordValueConstructor;
+
+objectName: identifier;
+
+objectNameOrBindingVar: REGULAR_IDENTIFIER;
+
+directoryName: identifier;
+
+schemaName: identifier;
+
+graphName: REGULAR_IDENTIFIER | delimitedGraphName;
+
+delimitedGraphName: delimitedIdentifier;
+
+graphTypeName: identifier;
+
+elementTypeName: identifier;
+
+bindingTableName:
+	REGULAR_IDENTIFIER
+	| delimitedBindingTableName;
+
+delimitedBindingTableName: delimitedIdentifier;
+
+procedureName: identifier;
+
+labelName: identifier;
+
+propertyName: identifier;
+
+fieldName: identifier;
+
+parameterName: DOLLAR separatedIdentifier;
+
+var:
+	graphVar
+	| graphPatternVar
+	| bindingTableVar
+	| valueVar
+	| bindingVar;
+
+graphVar: bindingVar;
+
+graphPatternVar: elementVar | pathOrSubpathVar;
+
+pathOrSubpathVar: pathVar | subpathVar;
+
+elementVar: bindingVar;
+
+pathVar: bindingVar;
+
+subpathVar: REGULAR_IDENTIFIER;
+
+bindingTableVar: bindingVar;
+
+valueVar: bindingVar;
+
+bindingVar: REGULAR_IDENTIFIER;
+
+token: nonDelimiterToken | delimiterToken;
+
+nonDelimiterToken:
+	REGULAR_IDENTIFIER
+	| parameterName
+	| keyWord
+	| UNSIGNED_NUMERIC_LITERAL
+	| BYTE_STRING_LITERAL
+	| MULTISET_ALTERNATION;
+
+identifier: REGULAR_IDENTIFIER | delimitedIdentifier;
+
+separatedIdentifier: REGULAR_IDENTIFIER | delimitedIdentifier;
+
+nonDelimitedIdentifier:
+	REGULAR_IDENTIFIER
+	| EXTENDED_IDENTIFIER;
+
+delimitedIdentifier:
+	doubleQuotedCharacterSequence
+	| accentQuotedCharacterSequence;
+
+keyWord: reservedWord | nonReservedWord;
+
+reservedWord:
+	preReservedWord
+	| ABS
+	| ACOS
+	| ALL
+	| ALL_DIFFERENT
+	| AND
+	| ANY
+	| ARRAY
+	| AS
+	| ASC
+	| ASCENDING
+	| ASIN
+	| AT
+	| ATAN
+	| AVG
+	| BIG
 	| BIGINT
-	| (SIGNED)? verboseBinaryExactNumericType;
-
-binaryExactUnsignedNumericType:
-	UINT8
+	| BINARY
+	| BOOL
+	| BOOLEAN
+	| BOTH
+	| BTRIM
+	| BY
+	| BYTE_LENGTH
+	| BYTES
+	| CALL
+	| CASE
+	| CAST
+	| CEIL
+	| CEILING
+	| CHAR_LENGTH
+	| CHARACTER_LENGTH
+	| CHARACTERISTICS
+	| CLOSE
+	| COALESCE
+	| COLLECT
+	| COMMIT
+	| COPY
+	| COS
+	| COSH
+	| COT
+	| COUNT
+	| CREATE
+	| CURRENT_DATE
+	| CURRENT_GRAPH
+	| CURRENT_PROPERTY_GRAPH
+	| CURRENT_SCHEMA
+	| CURRENT_TIME
+	| CURRENT_TIMESTAMP
+	| CURRENT_USER
+	| DATE
+	| DATETIME
+	| DAY
+	| DEC
+	| DECIMAL
+	| DEGREES
+	| DELETE
+	| DESC
+	| DESCENDING
+	| DETACH
+	| DISTINCT
+	| DOUBLE
+	| DROP
+	| DURATION
+	| DURATION_BETWEEN
+	| ELEMENT_ID
+	| ELSE
+	| END
+	| EXCEPT
+	| EXISTS
+	| EXP
+	| FALSE
+	| FILTER
+	| FINISH
+	| FLOAT
+	| FLOAT16
+	| FLOAT32
+	| FLOAT64
+	| FLOAT128
+	| FLOAT256
+	| FLOOR
+	| FOR
+	| FROM
+	| GROUP
+	| HAVING
+	| HOME_GRAPH
+	| HOME_PROPERTY_GRAPH
+	| HOME_SCHEMA
+	| HOUR
+	| IF
+	| IN
+	| INSERT
+	| INT
+	| INTEGER
+	| INT8
+	| INTEGER8
+	| INT16
+	| INTEGER16
+	| INT32
+	| INTEGER32
+	| INT64
+	| INTEGER64
+	| INT128
+	| INTEGER128
+	| INT256
+	| INTEGER256
+	| INTERSECT
+	| INTERVAL
+	| IS
+	| LEADING
+	| LET
+	| LIKE
+	| LIMIT
+	| LIST
+	| LN
+	| LOCAL
+	| LOCAL_DATETIME
+	| LOCAL_TIME
+	| LOCAL_TIMESTAMP
+	| LOG
+	| LOG10
+	| LOWER
+	| LTRIM
+	| MATCH
+	| MAX
+	| MIN
+	| MINUTE
+	| MOD
+	| MONTH
+	| NEXT
+	| NODETACH
+	| NORMALIZE
+	| NOT
+	| NULL
+	| NULLS
+	| NULLIF
+	| OCTET_LENGTH
+	| OF
+	| OFFSET
+	| OPEN
+	| OPTIONAL
+	| OR
+	| ORDER
+	| OTHERWISE
+	| PARAMETER
+	| PARAMETERS
+	| PATH
+	| PATH_LENGTH
+	| PATHS
+	| PERCENTILE_CONT
+	| PERCENTILE_DISC
+	| POWER
+	| PRECISION
+	| PROPERTY_EXISTS
+	| RADIANS
+	| REAL
+	| RECORD
+	| REMOVE
+	| REPLACE
+	| RESET
+	| RETURN
+	| ROLLBACK
+	| RTRIM
+	| SAME
+	| SCHEMA
+	| SECOND
+	| SELECT
+	| SESSION
+	| SET
+	| SIGNED
+	| SIN
+	| SINH
+	| SKIP_
+	| SMALL
+	| SMALLINT
+	| SQRT
+	| START
+	| STDDEV_POP
+	| STDDEV_SAMP
+	| STRING
+	| SUM
+	| TAN
+	| TANH
+	| THEN
+	| TIME
+	| TIMESTAMP
+	| TRAILING
+	| TRIM
+	| TRUE
+	| TYPED
+	| UBIGINT
+	| UINT
+	| UINT8
 	| UINT16
 	| UINT32
 	| UINT64
 	| UINT128
 	| UINT256
-	| UINT LEFT_PAREN unsignedDecimalInteger RIGHT_PAREN
-	| UNSIGNED verboseBinaryExactNumericType;
+	| UNION
+	| UNKNOWN
+	| UNSIGNED
+	| UPPER
+	| USE
+	| USMALLINT
+	| VALUE
+	| VARBINARY
+	| VARCHAR
+	| VARIABLE
+	| WHEN
+	| WHERE
+	| WITH
+	| XOR
+	| YEAR
+	| YIELD
+	| ZONED
+	| ZONED_DATETIME
+	| ZONED_TIME;
 
-verboseBinaryExactNumericType:
-	INTEGER8
-	| INTEGER16
-	| INTEGER32
-	| INTEGER64
-	| INTEGER128
-	| INTEGER256
-	| INTEGER LEFT_PAREN unsignedDecimalInteger RIGHT_PAREN;
+preReservedWord:
+	AGGREGATE
+	| AGGREGATES
+	| ALTER
+	| CATALOG
+	| CLEAR
+	| CLONE
+	| CONSTRAINT
+	| CURRENT_ROLE
+	| DATA
+	| DIRECTORY
+	| EXACT
+	| EXISTING
+	| FUNCTION
+	| GQLSTATUS
+	| GRANT
+	| INSTANT
+	| LEFT
+	| NOTHING
+	| NUMERIC
+	| ON
+	| PARTITION
+	| PROCEDURE
+	| PRODUCT
+	| PROJECT
+	| QUERY
+	| RECORDS
+	| REFERENCE
+	| RENAME
+	| REVOKE
+	| RIGHT
+	| SUBSTRING
+	| TEMPORAL
+	| UNIQUE
+	| UNIT
+	| VALUES;
 
-decimalExactNumericType: (DECIMAL | DEC) LEFT_PAREN unsignedDecimalInteger (
-		COMMA unsignedDecimalInteger
-	)? RIGHT_PAREN;
-
-approximateNumericType:
-	FLOAT16
-	| FLOAT32
-	| FLOAT64
-	| FLOAT128
-	| FLOAT256
-	| FLOAT LEFT_PAREN unsignedDecimalInteger (
-		COMMA unsignedDecimalInteger
-	)? RIGHT_PAREN
-	| REAL
-	| DOUBLE PRECISION;
-
-temporalType:
-	DATETIME
-	| LOCALDATETIME
-	| DATE
-	| TIME
-	| LOCALTIME
-	| DURATION;
-
-graphElementType: NODE | VERTEX | EDGE | RELATIONSHIP;
-
-listValueTypeName: LIST | ARRAY;
-
-mapValueType:
-	MAP LEFT_ANGLE_BRACKET mapKeyType COMMA valueType RIGHT_ANGLE_BRACKET;
-
-mapKeyType: predefinedType;
-
-recordValueType: RECORD LEFT_BRACE (fieldTypeList)? RIGHT_BRACE;
-
-fieldTypeList: fieldType (COMMA fieldType)*;
-
-fieldType: identifier (ofTypePrefix)? valueType;
-
-parameterName: AMPERSAND separatedIdentifier;
-
-identifier: regularIdentifier | delimitedIdentifier;
-
-separatedIdentifier: extendedIdentifier | delimitedIdentifier;
-
-token: nonDelimiterToken | delimiterToken;
-
-nonDelimiterToken:
-	regularIdentifier
-	| parameterName
-	| KEY_WORD
-	| unsignedNumericLiteral
-	| byteStringLiteral
-	| MULTISET_ALT_OPERATOR;
-
-nonDelimitedIdentifier: regularIdentifier | extendedIdentifier;
-
-regularIdentifier: LETTER (GQL_LANGUAGE_CHAR)*;
-
-extendedIdentifier: (GQL_LANGUAGE_CHAR)+;
+nonReservedWord:
+	ACYCLIC
+	| BINDING
+	| BINDINGS
+	| CONNECTING
+	| DESTINATION
+	| DIFFERENT
+	| DIRECTED
+	| EDGE
+	| EDGES
+	| ELEMENT
+	| ELEMENTS
+	| FIRST
+	| GRAPH
+	| GROUPS
+	| KEEP
+	| LABEL
+	| LABELED
+	| LABELS
+	| LAST
+	| NFC
+	| NFD
+	| NFKC
+	| NFKD
+	| NO
+	| NODE
+	| NORMALIZED
+	| ONLY
+	| ORDINALITY
+	| PROPERTY
+	| READ
+	| RELATIONSHIP
+	| RELATIONSHIPS
+	| REPEATABLE
+	| SHORTEST
+	| SIMPLE
+	| SOURCE
+	| TABLE
+	| TEMP
+	| TIMEZONE
+	| TO
+	| TRAIL
+	| TRANSACTION
+	| TYPE
+	| UNDIRECTED
+	| VERTEX
+	| WALK
+	| WITHOUT
+	| WRITE
+	| ZONE;
 
 delimiterToken:
 	GQL_SPECIAL_CHAR
-	| BRACKER_MINUS_RIGHT_ARROW
-	| BRACKET_TILDE_RIGHT_ARROW
-	| CONCATENATION_OPERATOR
+	| characterStringLiteral
+	| dateString
+	| dateTimeString
+	| delimitedIdentifier
+	| durationString
+	| timeString
+	| CONCATENATION
 	| DOUBLE_COLON
 	| DOUBLE_MINUS
 	| DOUBLE_PERIOD
-	| GRATER_THEN_OPERATOR
-	| GREATER_THEN_OR_EQUALS
-	| LEFT_ARROW_MIUNUS
-	| LEFT_ARROW_MINUS_RIGHT_BRACKET
+	| NOT_EQUALS
+	| LESS_THAN
+	| GREATER_THAN
+	| LESS_THAN_OR_EQUALS
+	| GREATER_THAN_OR_EQUALS
+	| LEFT_ARROW
 	| LEFT_ARROW_TILDE
-	| LEFT_ARROW_RIGHT_BRACKET
+	| LEFT_ARROW_BRACKET
+	| LEFT_ARROW_TILDE_BRACKET
 	| LEFT_MINUS_RIGHT
 	| LEFT_MINUS_SLASH
 	| LEFT_TILDE_SLASH
-	| LESS_THEN
-	| LESS_THEN_OR_EQUALS
 	| MINUS_LEFT_BRACKET
-	| MINUS_SLESH
-	| NOT_EQUALS
-	| RIGHT_ANGLE_BRACKET
+	| MINUS_SLASH
+	| RIGHT_ARROW
 	| RIGHT_BRACKET_MINUS
 	| RIGHT_BRACKET_TILDE
+	| BRACKET_RIGHT_ARROW
+	| BRACKET_TILDE_RIGHT_ARROW
 	| SLASH_MINUS
 	| SLASH_MINUS_RIGHT
 	| SLASH_TILDE
 	| SLASH_TILDE_RIGHT
 	| TILDE_LEFT_BRACKET
 	| TILDE_RIGHT_ARROW
-	| TILDE_SLASH
-	| characterStringLiteral
-	| dateString
-	| datetimeString
-	| delimitedIdentifier
-	| durationString
-	| timeString;
+	| TILDE_SLASH;
 
-delimitedIdentifier:
-	doubleQuotedCharacterSequence
-	| unbrokenAccentQuotedCharacterSequence;
+separator: comment | WS;
 
-separator: (comment | WHITESPACE)+;
-
-comment: simpleComment | bracketedComment;
-
-simpleComment: (DOUBLE_SOLIDUS | DOUBLE_MINUS) (
-		GQL_TERMINAL_CHAR
-	)* NEW_LINE;
-
-bracketedComment:
-	BRACKETED_COMMENT_START GQL_TERMINAL_CHAR BRACKETED_CoMMENT_END;
+comment: SIMPLE_COMMENT_LITERAL | BRACKETED_COMMNET_LITERAL;
 
 edgeSynonym: EDGE | RELATIONSHIP;
+
+edgesSynonym: EDGES | RELATIONSHIPS;
 
 nodeSynonym: NODE | VERTEX;

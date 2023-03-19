@@ -18,7 +18,19 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react"
+    "jsx": "react",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+      "@editor/*": [
+        "src/editor/*"
+      ],
+      "@shared/*": [
+        "src/shared/*"
+      ]
+    }
   },
   "include": [
     "src"
