@@ -1,10 +1,10 @@
 import React, { ReactElement } from 'react';
-import { ExclamationIcon } from '@editor/components/errors-list/components/exclamation-icon';
-import { CheckIcon } from '@editor/components/errors-list/components/check-icon';
 import styles from './errors-list.module.css';
 import { ParseError } from '@editor/types/parse-error';
 import { ErrorsListItem } from '@editor/components/errors-list/components/errors-list-item';
-import { SpinnerIcon } from '@shared/components/icons/spinner-icon/spinner-icon';
+import { SpinnerIcon } from '@shared/icons/spinner-icon/spinner-icon';
+import { CheckIcon } from '@shared/icons/check-icon/check-icon';
+import { ExclamationIcon } from '@shared/icons/exclamation-icon/exclamation-icon';
 
 interface ErrorsListProps {
   readonly errors: ParseError[];
@@ -15,7 +15,7 @@ export const ErrorsList = (props: ErrorsListProps): ReactElement => {
   if (props.isParsing) {
     return (
       <span className={styles.parsing}>
-        <SpinnerIcon />
+        <SpinnerIcon width={16} height={16} />
         <span className={styles.parsingStr}>Parsing...</span>
       </span>
     );

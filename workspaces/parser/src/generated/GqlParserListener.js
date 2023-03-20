@@ -1769,6 +1769,15 @@ export default class GqlParserListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
+	// Enter a parse tree produced by GqlParser#isOrColon.
+	enterIsOrColon(ctx) {
+	}
+
+	// Exit a parse tree produced by GqlParser#isOrColon.
+	exitIsOrColon(ctx) {
+	}
+
+
 	// Enter a parse tree produced by GqlParser#elementPatternPredicate.
 	enterElementPatternPredicate(ctx) {
 	}

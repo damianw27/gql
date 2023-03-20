@@ -1,8 +1,6 @@
 import { ParseError } from '@editor/types/parse-error';
 import { Language } from '@editor/types/language';
-import { useEffect, useReducer } from 'react';
-import { useDebouncedEffect } from '@editor/hooks/debounced-effect';
-import { UseParsing } from '@editor/hooks/parsing/types/use-parsing';
+import { useReducer } from 'react';
 import {
   defaultParsingOutput,
   ParsingOutput,
@@ -17,6 +15,7 @@ import {
   EndWithErrorParsingAction,
   StartParsingAction,
 } from '@editor/hooks/parsing/parsing-action';
+import { useDebouncedEffect } from '@shared/hooks/debounce/debounced-effect';
 
 export const useParsing = (query: string, lang: Language): ParsingState => {
   const [state, dispatch] = useReducer(parsingReducer, defaultParsingState);

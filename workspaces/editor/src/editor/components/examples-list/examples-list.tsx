@@ -4,7 +4,7 @@ import { ExampleElement } from '@editor/components/examples-list/components/exam
 import css from './examples-list.module.css';
 import { ExampleDefinition } from '@editor/components/examples-list/components/example-code/types/example-definition';
 import Fuse from 'fuse.js';
-import { useDebounce } from '@editor/hooks/debounce';
+import { useDebounce } from '@shared/hooks/debounce/debounce';
 
 interface ExamplesListProps {
   readonly grammar: Grammar;

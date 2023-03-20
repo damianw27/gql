@@ -46,7 +46,6 @@ export const Examples = (props: ExamplesProps): ReactElement => {
     }
 
     const foundExamples = searchForExamples(debouncedSearchPhrase);
-    console.log(foundExamples);
     setExamples(foundExamples);
   }, [debouncedSearchPhrase]);
 

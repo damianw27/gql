@@ -6,7 +6,7 @@ options {
 }
 
 // program grammar
-gqlProgram: (separator? activity separator? ';'?)* EOF;
+gqlProgram: (separator? activity separator? ';'? separator?)* EOF;
 
 activity: programActivity (separator sessionCloseCommand)?;
 
@@ -39,16 +39,16 @@ sessionSetParameterClause:
 	| sessionSetValuesParameterClause;
 
 sessionSetGraphParameterClause:
-	(PROPERTY separator)? GRAPH sessionSetParameterName optTypedGraphInit;
+	(PROPERTY separator)? GRAPH separator sessionSetParameterName separator? optTypedGraphInit;
 
 sessionSetBindingTableParameterCalues:
-	(BINDING separator)? TABLE sessionSetParameterName optTypedBindingTableInit;
+	(BINDING separator)? TABLE separator sessionSetParameterName separator? optTypedBindingTableInit;
 
 sessionSetValuesParameterClause:
-	VALUE sessionSetParameterName optTypedValueInit;
+	VALUE separator sessionSetParameterName separator? optTypedValueInit;
 
 sessionSetParameterName:
-	parameterName (separator IF_NOT_EXISTS)?;
+	(IF_NOT_EXISTS separator)? parameterName;
 
 sessionResetCommand:
 	(SESSION separator)? RESET separator sessionResetArguments;
@@ -78,9 +78,9 @@ transactionStartCommand:
 transactionEndCommand: ROLLBACK | COMMIT;
 
 transactionCharacteristics:
-	transactionMode separator? (
-		COMMA separator? transactionMode separator?
-	)+;
+	transactionMode (
+	  separator? COMMA separator? transactionMode
+	)*;
 
 transactionMode: transactionAccessMode | implDefinedAccessMode;
 
@@ -141,7 +141,7 @@ valueVarDef:
 optTypedValueInit:
 	(((typed separator)? valueType) separator)? valueInit;
 
-valueInit: EQUALS separator valueExpr;
+valueInit: EQUALS separator? valueExpr;
 
 // object expressions grammar
 graphExpr:
@@ -319,7 +319,7 @@ setAllPropertiesItem:
 		separator propertyKeyValuePairList
 	)? separator? RIGHT_BRACE;
 
-setLabelItem: bindingVarRef (IS | COLON) labelSetSpec;
+setLabelItem: bindingVarRef separator isOrColon labelSetSpec;
 
 labelSetSpec:
 	labelName (separator? AMPERSAND separator? labelName)*;
@@ -334,7 +334,7 @@ removeItem: removePropertyItem | removeLabelItem;
 removePropertyItem: bindingVarRef PERIOD propertyName;
 
 removeLabelItem:
-	bindingVarRef separator (IS | COLON) separator labelSetSpec;
+	bindingVarRef separator isOrColon labelSetSpec;
 
 deleteStatment:
 	(DETACH | NODETACH) separator DELETE separator deleteItemList;
@@ -682,8 +682,11 @@ elementPatternFiller:
 elementVarDeclaration: (TEMP separator)? elementVar;
 
 isLabelExpr:
-	IS separator labelExpr
-	| COLON separator? labelExpr;
+	isOrColon labelExpr;
+
+isOrColon:
+  (IS separator)
+  | COLON separator?;
 
 elementPatternPredicate:
 	elementPatternWhereClause
@@ -764,7 +767,7 @@ insertGraphPatternList:
 
 insertPathPattern:
 	insertNodePattern (
-		separator? insertEdgePattern separator insertNodePattern separator?
+		separator? insertEdgePattern separator? insertNodePattern separator?
 	)*;
 
 insertNodePattern:
@@ -789,8 +792,8 @@ insertElementPatternFiller:
 	| (elementVarDeclaration separator)? labelAndPropertySetSpec;
 
 labelAndPropertySetSpec:
-	labelSetSpec (separator elementPropertySpec)?
-	| (labelSetSpec separator)? elementPropertySpec;
+	isOrColon labelSetSpec (separator elementPropertySpec)?
+	| (isOrColon labelSetSpec separator)? elementPropertySpec;
 
 labelExpr:
 	labelTerm (separator? VERTICAL_BAR separator? labelTerm)*;
@@ -1445,7 +1448,7 @@ catalogGraphTypeParentAndName:
 	(catalogObjectParentRef separator)? graphTypeName;
 
 bindingTableRef:
-	catalogObjectParentRef bindingTableName
+	catalogObjectParentRef separator bindingTableName
 	| delimitedBindingTableName
 	| refParameter;
 
@@ -1458,7 +1461,7 @@ catalogProcedureParentAndName:
 	(catalogObjectParentRef separator)? procedureName;
 
 catalogObjectParentRef:
-	schemaRef SOLIDUS? (objectName PERIOD)+
+	schemaRef SOLIDUS? (objectName PERIOD)*
 	| (objectName PERIOD)+;
 
 refParameter: parameter;
@@ -1630,11 +1633,13 @@ paranthisedBooleanValueExpr:
 	LEFT_PAREN separator? booleanValueExpr separator? RIGHT_PAREN;
 
 numericValueExpr:
-	term separator? PLUS separator? numericValueExpr
+  term
+	| term separator? PLUS separator? numericValueExpr
 	| term separator? MINUS separator? numericValueExpr;
 
 term:
-	factor separator? ASTERISK separator? term
+  factor
+	| factor separator? ASTERISK separator? term
 	| factor separator? SOLIDUS separator? term;
 
 factor: SIGN? numericPrimary;
