@@ -1,0 +1,48 @@
+.examplesWrapper {
+  padding-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.examplesWrapper .examplesHeader {
+  font-weight: bold;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+.examplesWrapper .examplesSearch {
+  padding: 0 1rem;
+  line-height: 2em;
+  width: calc(100% - 2rem - 2px);
+  color: #696969;
+  background-color: rgba(217, 217, 217, 0.15);
+  background-image: none;
+  background-clip: padding-box;
+  border: 1px solid rgba(133, 133, 133, 0.3);
+  border-radius: 0.25rem;
+  margin-bottom: 0.05rem;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+  -webkit-appearance: none;
+  font-size: 14px;
+  height: 1.775rem;
+}
+
+.examplesList {
+  list-style: none;
+  flex: 1;
+  margin: 0.25rem 0 0 0;
+  padding: 0;
+  overflow-y: unset;
+}
+
+@media (min-width: 840px) {
+  .examplesWrapper {
+    height: 690px;
+  }
+
+  .examplesList {
+    overflow-y: scroll;
+    padding-right: 0.25rem;
+  }
+}

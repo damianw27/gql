@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "module": "CommonJS",
+    "resolveJsonModule": true,
+    "declaration": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": false,
+    "allowJs": true,
+    "outDir": "./dist",
+    "declarationDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "$root/*": [
+        "src/*"
+      ],
+      "$types/*": [
+        "src/types/*"
+      ],
+      "$versions/*": [
+        "src/versions/*"
+      ],
+      "$test/*": [
+        "test/*"
+      ]
+    }
+  },
+  "include": [
+    "./src/**/*"
+  ]
+}

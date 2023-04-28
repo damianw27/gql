@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noImplicitAny": true,
+    "jsx": "react",
+    "baseUrl": "./",
+    "outDir": "./dist",
+    "paths": {
+      "$/*": [
+        "src/*"
+      ],
+      "$components/*": [
+        "src/components/*"
+      ],
+      "$containers/*": [
+        "src/containers/*"
+      ],
+      "$hooks/*": [
+        "src/hooks/*"
+      ],
+      "$icons/*": [
+        "src/icons/*"
+      ],
+      "$types/*": [
+        "src/types/*"
+      ]
+    }
+  },
+}

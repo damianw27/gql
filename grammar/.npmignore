@@ -1,0 +1,11 @@
+/src
+/node_modules
+/test
+.eslintignore
+.eslintrc.js
+.gitattribute
+.gitignore
+.npmignore
+.prettierrc.js
+tsconfig.json
+webpack.config.js

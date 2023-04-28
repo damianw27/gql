@@ -1,0 +1,7 @@
+node_modules/
+generated/
+.eslintrc.js
+.prettierrc.js
+jest.config.ts
+webpack.config.js
+
