@@ -1,6 +1,6 @@
 {
   "name": "@gql-grammar/worker",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -12,7 +12,7 @@
     "build": "webpack && tsc-alias -p tsconfig.json"
   },
   "dependencies": {
-    "@gql-grammar/core": "^1.0.0",
+    "@gql-grammar/core": "^1.0.2",
     "antlr4": "^4.12.0"
   },
   "devDependencies": {
