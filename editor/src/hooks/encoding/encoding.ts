@@ -1,5 +1,6 @@
 import * as base64 from 'base64-js';
 import pako from 'pako';
+import { TextDecoder } from 'text-encoding-utf-8';
 
 interface UseEncoding {
   readonly encode: (value: string) => string;

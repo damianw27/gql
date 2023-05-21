@@ -1,24 +1,27 @@
 const path = require('path');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-const TSConfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
+const { TsconfigPathsPlugin } = require('tsconfig-paths-webpack-plugin');
 
 const getConfig = (inputFilePath, outputFilePath) => ({
-  mode: 'production',
+  context: __dirname,
+  // mode: 'production',
   entry: path.resolve(__dirname, 'src', inputFilePath),
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: outputFilePath,
+    globalObject: 'this',
+    library: {
+      name: 'gql-grammar-core',
+      type: 'umd',
+    },
   },
   resolve: {
     extensions: ['.ts', '.js', '.json'],
     plugins: [
-      new TSConfigPathsPlugin(),
+      new TsconfigPathsPlugin(),
     ],
-    fallback: {
-      util: require.resolve("util/"),
-      assert: require.resolve("assert/")
-    }
+    symlinks: false,
   },
   module: {
     rules: [
@@ -69,5 +72,6 @@ const getConfig = (inputFilePath, outputFilePath) => ({
 
 module.exports = [
   getConfig('index.ts', 'index.js'),
-  getConfig('versions/latest/index.ts', 'latest/index.js'),
+  getConfig('versions/latest/index.ts', 'versions/latest/index.js'),
+  getConfig('versions/pg-schema/index.ts', 'versions/pg-schema/index.js'),
 ];

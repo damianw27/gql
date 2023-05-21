@@ -9,6 +9,7 @@ export const SpinnerIcon = (props: IconSharedProps): ReactElement => (
       xmlns="http://www.w3.org/2000/svg"
       width={props.width}
       height={props.height}
+      data-testid={props.testId}
       viewBox="0 0 48 48"
     >
       <g fill="none">

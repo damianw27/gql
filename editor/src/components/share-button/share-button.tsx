@@ -1,7 +1,7 @@
 import React, { ReactElement, useEffect, useState } from 'react';
 import { useEncoding } from '$hooks/encoding/encoding';
 import { ShortenLinkResponse } from '$components/share-button/types/shorten-link-response';
-import { Button } from '$components/button/button';
+import { Button } from '$components/button/button.component';
 import { ShareIcon } from '$icons/share-icon/share-icon';
 
 interface ShareButtonProps {
@@ -28,7 +28,18 @@ export const ShareButton = (props: ShareButtonProps): ReactElement => {
     setIsLoading(true);
     const encodedCodeStr = encode(props.code);
     const codeParamValue = encodeURIComponent(encodedCodeStr);
-    const targetUrl = `${window.location.href}?code=${codeParamValue}`;
+    let targetUrl = window.location.href;
+
+    if (targetUrl.includes('code=')) {
+      targetUrl = targetUrl.replace(/([&?])code=[^&]*(&|$)/, '$1');
+    }
+
+    if (targetUrl.includes('?')) {
+      targetUrl += `&code=${codeParamValue}`;
+    } else {
+      targetUrl += `?code=${codeParamValue}`;
+    }
+
     const shortenUrl = await shortenLink(targetUrl);
     await navigator.clipboard.writeText(shortenUrl.url);
     setIsLoading(false);

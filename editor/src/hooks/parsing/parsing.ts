@@ -1,49 +1,70 @@
-import { useEffect, useState } from 'react';
-import { Lexer, Parser } from 'antlr4';
-import { GrammarEventResultInit, GrammarEventResultParse, GrammarEventType } from '@gql-grammar/worker';
+import { useEffect, useRef, useState } from 'react';
+import { GrammarEventResultInit, GrammarEventResultParse, GrammarEventType, WorkerInfo } from '@gql-grammar/worker';
 import { useDebouncedEffect } from '$hooks/debounce/debounced-effect';
 
-export const useParsing = <P extends Parser, L extends Lexer>(text: string) => {
-  const [grammarWorker, setGrammarWorker] = useState<Worker>();
-  const [grammarSpec, setGrammarSpec] = useState<GrammarEventResultInit>();
-  const [parseResult, setParseResult] = useState<GrammarEventResultParse>();
-  const [isParsing, setIsParsing] = useState<boolean>();
+interface ParsingData {
+  specification?: GrammarEventResultInit;
+  parseResult?: GrammarEventResultParse;
+}
+
+interface UseParsing extends ParsingData {
+  readonly isParsing: boolean;
+}
+
+export const useParsing = (text: string, workerInfo: WorkerInfo): UseParsing => {
+  const grammarWorkerRef = useRef<Worker | null>(null);
+  const [parsingData, setParsingData] = useState<ParsingData>({});
+  const [isParsing, setIsParsing] = useState<boolean>(false);
+  const [isInitializing, setIsInitializing] = useState<boolean>(false);
+
+  const handleInitResponse = ({ data }: MessageEvent<GrammarEventResultInit>): void => {
+    setParsingData({ specification: data });
+    setIsInitializing(false);
+  };
+
+  const handleParseResponse = ({ data }: MessageEvent<GrammarEventResultParse>) => {
+    setParsingData({ ...parsingData, parseResult: data });
+    setIsParsing(false);
+  };
 
   useEffect(() => {
-    if (grammarWorker !== undefined) {
-      grammarWorker.terminate();
+    if (grammarWorkerRef.current !== null) {
+      grammarWorkerRef.current.terminate();
     }
 
-    const worker = new Worker('./workers/latest.worker.js');
-    worker.postMessage({ type: GrammarEventType.Initialize });
-    worker.onmessage = ({ data }: MessageEvent<GrammarEventResultInit>) => setGrammarSpec(data);
-    setGrammarWorker(worker);
+    setIsInitializing(true);
+    grammarWorkerRef.current = null;
+    grammarWorkerRef.current = new Worker(`./workers/${workerInfo.fileName}`);
+    grammarWorkerRef.current.postMessage({ type: GrammarEventType.Initialize });
+    grammarWorkerRef.current.onmessage = handleInitResponse;
 
     return () => {
-      grammarWorker?.terminate();
-    };
-  }, []);
+      if (grammarWorkerRef.current === null) {
+        return;
+      }
 
-  useDebouncedEffect({
-    callback: () => {
-      if (text === '' || grammarWorker === undefined) {
+      grammarWorkerRef.current.terminate();
+    };
+  }, [workerInfo]);
+
+  useDebouncedEffect(
+    () => {
+      if (grammarWorkerRef.current === null || isInitializing) {
         return;
       }
 
       setIsParsing(true);
-      grammarWorker.postMessage({ type: GrammarEventType.Parse, payload: { text } });
-      grammarWorker.onmessage = ({ data }: MessageEvent<GrammarEventResultParse>) => {
-        setParseResult(data);
-        setIsParsing(false);
-      };
+      grammarWorkerRef.current.postMessage({ type: GrammarEventType.Parse, payload: { text } });
+      grammarWorkerRef.current.onmessage = handleParseResponse;
     },
-    delay: 800,
-    deps: [text],
-  });
+    {
+      deps: [text, isInitializing, grammarWorkerRef.current],
+      delay: 800,
+    },
+  );
 
   return {
-    grammarSpec,
-    parseResult,
+    ...parsingData,
     isParsing,
   };
 };

@@ -1,76 +1,86 @@
-import { useCallback, useEffect, useState } from 'react';
-import Prism, { Grammar, highlight } from 'prismjs';
-import styles from '$hooks/highlights/highlight.module.css';
-import { Lexer, Parser } from 'antlr4';
-import { GrammarEventResultInit } from '@gql-grammar/worker';
+import React, { ReactElement, useCallback, useEffect, useState } from 'react';
+import { GrammarValue, highlight } from 'prismjs';
+import { GrammarEventResultInit, GrammarEventResultParse, SyntaxType } from '@gql-grammar/worker';
+import parse from 'html-react-parser';
+import css from '$hooks/highlights/highlight.module.css';
+
+interface UseHighlightsProps {
+  readonly specification?: GrammarEventResultInit;
+  readonly parseResult?: GrammarEventResultParse;
+}
 
 interface UseHighlights {
-  readonly highlight: (code: string) => string;
-  readonly grammar: Grammar;
+  readonly highlight: (code: string) => ReactElement;
+  readonly grammar?: Record<string, GrammarValue>;
 }
 
 const NEW_LINE = '\n';
-const REGEX_ALT_SEPARATOR = '|';
-const ESCAPED_CHAR_PATTERN = '\\$&';
 const NODE_REGEX = /(<span[^>]*>)((.|\n)*?)(<\/span>)/gi;
-const REGEX_SPEC_CHARS_REGEX = /[.*+\-?^${}()|[\]\\]/g;
-const COMMENT_BLOCK_REGEX = /\/\*(([^]|\*(?!\/))*)\*\//gms;
-const COMMENT_REGEX = /(^|[^\\:])\/\/.*/gms;
-const STRING_REGEX = /(["'`])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/;
 
-export const useHighlights = <P extends Parser, L extends Lexer>(
-  grammarSpec: GrammarEventResultInit | undefined,
-): UseHighlights => {
-  const [grammar, setGrammar] = useState<Grammar>({});
+const cssClassNames: Record<SyntaxType, string> = {
+  [SyntaxType.Keyword]: css.keyword,
+  [SyntaxType.Punctuation]: css.punctuation,
+  [SyntaxType.Comment]: css.comment,
+  [SyntaxType.String]: css.string,
+  [SyntaxType.Boolean]: css.boolean,
+  [SyntaxType.Number]: css.number,
+  [SyntaxType.Custom1]: css.custom1,
+  [SyntaxType.Custom2]: css.custom2,
+  [SyntaxType.Custom3]: css.custom3,
+  [SyntaxType.Custom4]: css.custom4,
+};
 
-  const assemblyLine = (line: string, index: number): string =>
-    `<tr><td class='${styles.lineNumberCell}'>${index + 1}</td><td class='${styles.codeLine}'>${line}</td></tr>`;
+export const useHighlights = ({ specification, parseResult }: UseHighlightsProps): UseHighlights => {
+  const [grammar, setGrammar] = useState<Record<string, GrammarValue>>();
 
-  const getStringsOnlyFromArray = (array: (string | null)[]): string[] =>
-    array.filter((x) => x !== null && x !== '').map((x) => x!);
+  const hasLineAnyError = useCallback(
+    (lineIndex: number): boolean => (parseResult?.errors ?? []).some((error) => error.lineIndex === lineIndex),
+    [parseResult],
+  );
+
+  const assemblyLine = (line: string, index: number): ReactElement => {
+    const hasError = hasLineAnyError(index + 1);
+
+    return (
+      <tr key={`code-line-${index}`} className={hasError ? css.codeLineError : undefined}>
+        <td className={css.lineNumberCell}>{index + 1}</td>
+        <td className={css.codeLine}>{parse(line)}</td>
+      </tr>
+    );
+  };
 
   useEffect(() => {
-    const symbolicNames = getStringsOnlyFromArray(grammarSpec?.symbolicNames ?? [])
-      .map((char: string) => char.replace(REGEX_SPEC_CHARS_REGEX, ESCAPED_CHAR_PATTERN))
-      .join(REGEX_ALT_SEPARATOR);
+    if (specification === undefined) {
+      return;
+    }
 
-    const literals = getStringsOnlyFromArray(grammarSpec?.literalNames ?? [])
-      .map((char: string) => char.replace(REGEX_SPEC_CHARS_REGEX, ESCAPED_CHAR_PATTERN))
-      .join(REGEX_ALT_SEPARATOR);
+    const { grammarDefinition } = specification;
+    const languageGrammar: Record<string, GrammarValue> = {};
 
-    const symbolicNamesRegExp = new RegExp(`\\b(?:${symbolicNames})\\b`, 'gi');
-    const literalsRegExp = new RegExp(`[${literals}]`, 'g');
+    grammarDefinition.syntax.forEach((syntaxObject) => {
+      const syntaxObjectIdentifier = cssClassNames[syntaxObject.syntaxType];
 
-    const languageGrammar: Grammar = {
-      [styles.tokenComment]: [
-        {
-          pattern: COMMENT_BLOCK_REGEX,
-          greedy: true,
-          multiline: true,
-        },
-        {
-          pattern: COMMENT_REGEX,
-          greedy: true,
-        },
-      ],
-      [styles.tokenString]: {
-        pattern: STRING_REGEX,
-        greedy: true,
-      },
-      [styles.tokenSymbol]: {
-        pattern: symbolicNamesRegExp,
-        lookbehind: true,
-        greedy: true,
-      },
-      [styles.tokenLiteral]: {
-        pattern: literalsRegExp,
-        lookbehind: true,
-        greedy: true,
-      },
-    };
+      let pattern: GrammarValue;
+
+      if (Array.isArray(syntaxObject.pattern)) {
+        pattern = syntaxObject.pattern.map((syntaxToken) => ({
+          pattern: syntaxToken.pattern,
+          greedy: syntaxToken.greedy,
+          lookbehind: syntaxToken.lookbehind,
+        }));
+      } else {
+        pattern = {
+          pattern: syntaxObject.pattern.pattern,
+          greedy: syntaxObject.pattern.greedy,
+          lookbehind: syntaxObject.pattern.lookbehind,
+        };
+      }
+
+      languageGrammar[syntaxObjectIdentifier] = pattern;
+    });
 
     setGrammar(languageGrammar);
-  }, [grammarSpec]);
+  }, [specification, parseResult]);
 
   const splitMultilineNode = (
     match: string,
@@ -79,23 +89,31 @@ export const useHighlights = <P extends Parser, L extends Lexer>(
     lastContentChar: string,
     closingTag: string,
     // eslint-disable-next-line max-params
-  ) => {
-    return content
+  ) =>
+    content
       .split(NEW_LINE)
       .map((lineContent) => `${openingTag}${lineContent}${closingTag}`)
       .join(NEW_LINE);
-  };
 
   const highlightCallback = useCallback(
-    (code: string): string => {
-      const highlighted = highlight(code, grammar, 'lang')
+    (code: string): ReactElement => {
+      const highlighted: ReactElement[] = highlight(code, grammar || {}, 'lang')
         .replace(NODE_REGEX, splitMultilineNode)
+        .replaceAll('class="token', `class="${css.token}`)
         .split(NEW_LINE)
-        .map(assemblyLine)
-        .join(NEW_LINE)
-        .replaceAll('class="token', `class="${styles.token}`);
+        .map(assemblyLine);
 
-      return `<div class='${styles.highlightBackground}'><div class='${styles.highlightLineNumberBackground}'></div><div class='${styles.highlightLineBackground}'></div></div><table class='${styles.table}'><tbody>${highlighted}</tbody></table>`;
+      return (
+        <>
+          <div className={css.highlightBackground}>
+            <div className={css.highlightLineNumberBackground} />
+            <div className={css.highlightLineBackground} />
+          </div>
+          <table className={css.table}>
+            <tbody>{highlighted}</tbody>
+          </table>
+        </>
+      );
     },
     [grammar],
   );

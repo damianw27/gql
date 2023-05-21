@@ -1,6 +1,6 @@
-import { GqlExample } from '$types/gql-example';
+import { Example } from '$types/example';
 
-export const examples: GqlExample[] = [
+export const examples: Example[] = [
   {
     name: 'Example with any graph type',
     code:

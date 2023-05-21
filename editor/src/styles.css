@@ -4,6 +4,11 @@
   font-family: 'roboto', sans-serif;
 }
 
+body {
+  margin: 0;
+  padding: 0.5rem;
+}
+
 .App {
   margin: auto;
 }
@@ -11,4 +16,10 @@
 #result {
   display: block;
   padding: 0.5rem;
+}
+
+:root {
+  --select-border: #777;
+  --select-focus: blue;
+  --select-arrow: var(--select-border);
 }

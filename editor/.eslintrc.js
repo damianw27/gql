@@ -4,6 +4,7 @@ module.exports = {
   env: {
     browser: true,
     es2021: true,
+    jest: true,
   },
   extends: ['alloy', 'alloy/react', 'alloy/typescript', 'prettier'],
   parser: '@typescript-eslint/parser',
@@ -14,7 +15,7 @@ module.exports = {
     ecmaVersion: 12,
     sourceType: 'module',
   },
-  plugins: ['prettier'],
+  plugins: ['prettier', 'jest'],
   rules: {
     'prettier/prettier': ['error', prettierConfig],
   },

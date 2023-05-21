@@ -1,0 +1,9 @@
+.parseTreeView {
+  width: 100%;
+  height: 800px;
+}
+
+.parseTree {
+  display: flex;
+  border: 1px solid #ced4da;
+}

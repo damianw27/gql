@@ -1,1 +1,1 @@
-export { GqlExample } from '$types/gql-example';
+export { Example } from '$types/example';

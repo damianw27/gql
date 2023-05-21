@@ -1,28 +1,31 @@
 {
   "compilerOptions": {
-    "module": "CommonJS",
     "target": "es5",
+    "module": "commonjs",
     "lib": [
       "dom",
       "dom.iterable",
-      "esnext"
+      "es2021"
     ],
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
     "strict": true,
+    "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noImplicitAny": true,
+    "downlevelIteration": true,
     "jsx": "react",
     "baseUrl": "./",
     "outDir": "./dist",
     "paths": {
-      "$/*": [
+      "$root/*": [
         "src/*"
       ],
       "$components/*": [
@@ -37,9 +40,12 @@
       "$icons/*": [
         "src/icons/*"
       ],
+      "$test/*": [
+        "test/*"
+      ],
       "$types/*": [
         "src/types/*"
       ]
     }
-  },
+  }
 }

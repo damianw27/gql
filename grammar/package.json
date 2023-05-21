@@ -12,25 +12,30 @@
   "type": "commonjs",
   "scripts": {
     "build:grammar": "antlr4 -Dlanguage=TypeScript -o src/versions/latest/generated/ src/versions/latest/antlr/GqlLexer.g4 -o src/versions/latest/generated/ src/versions/latest/antlr/GqlParser.g4",
+    "build:grammar1": "antlr4 -Dlanguage=TypeScript -o src/versions/pg-schema/generated/ src/versions/pg-schema/antlr/PGSLexer.g4 -o src/versions/pg-schema/generated/ src/versions/pg-schema/antlr/PGSParser.g4",
     "build:lib": "webpack && tsc-alias -p tsconfig.json",
     "build:all": "yarn build:grammar && yarn build:lib",
     "test": "jest"
   },
   "dependencies": {
-    "antlr4": "^4.12.0"
+    "@gql-grammar/antlr4": "file:../antlr"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.1",
     "@types/node": "^18.15.3",
     "@typescript-eslint/eslint-plugin": "^5.55.0",
     "@typescript-eslint/parser": "^5.55.0",
     "eslint": "^8.36.0",
     "eslint-config-alloy": "^5.0.0",
     "eslint-config-prettier": "^8.7.0",
+    "eslint-plugin-jest": "^27.2.1",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-webpack-plugin": "^4.0.1",
+    "jest": "^29.5.0",
     "node": "^19.8.1",
     "prettier": "^2.8.4",
     "terser-webpack-plugin": "^5.3.7",
+    "ts-jest": "^29.1.0",
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
     "tsc-alias": "^1.8.4",

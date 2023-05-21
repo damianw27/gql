@@ -9,7 +9,6 @@ module.exports = {
     'jest': true,
   },
   extends: [
-    'plugin:@typescript-eslint/recommended',
     'alloy',
     'alloy/typescript',
     'prettier',

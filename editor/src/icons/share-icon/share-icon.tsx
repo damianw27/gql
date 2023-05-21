@@ -6,6 +6,7 @@ export const ShareIcon = (props: IconSharedProps): ReactElement => (
     xmlns="http://www.w3.org/2000/svg"
     width={props.width}
     height={props.height}
+    data-testid={props.testId}
     fill="currentColor"
     className="bi bi-share-fill"
     viewBox="0 0 16 16"

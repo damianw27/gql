@@ -4,7 +4,7 @@ import { GrammarParsingError } from '@gql-grammar/worker';
 import { SpinnerIcon } from '$icons/spinner-icon/spinner-icon';
 import { CheckIcon } from '$icons/check-icon/check-icon';
 import { ExclamationIcon } from '$icons/exclamation-icon/exclamation-icon';
-import { ErrorsListItem } from '$components/errors-list/components/errors-list-item';
+import { ErrorsListItem } from '$components/errors-list/errors-list-item';
 
 interface ErrorsListProps {
   readonly errors: GrammarParsingError[];

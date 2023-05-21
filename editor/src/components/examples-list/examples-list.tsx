@@ -1,10 +1,10 @@
 import React, { ReactElement, useEffect, useState } from 'react';
 import { Grammar } from 'prismjs';
-import css from './examples-list.module.css';
+import css from '$components/examples-list/examples-list.module.css';
 import Fuse from 'fuse.js';
 import { GqlExample } from '@gql-grammar/core';
 import { useDebounce } from '$hooks/debounce/debounce';
-import { ExampleElement } from '$components/examples-list/components/example-element/example-element';
+import { ExampleElement } from '$components/examples-list/example-element';
 
 interface ExamplesListProps {
   readonly grammar: Grammar;
@@ -17,7 +17,7 @@ type ExamplesFuse = Fuse<GqlExample>;
 const fuseOptions = {
   includeScore: false,
   shouldSort: true,
-  keys: ['title'],
+  keys: ['name', 'code'],
 };
 
 export const ExamplesList = (props: ExamplesListProps): ReactElement => {
@@ -30,12 +30,6 @@ export const ExamplesList = (props: ExamplesListProps): ReactElement => {
 
   useEffect(() => {
     setFuse(new Fuse(props.examples, fuseOptions));
-
-    if (searchPhrase === '') {
-      setExamples(props.examples);
-      return;
-    }
-
     const foundExamples = searchForExamples(searchPhrase);
     setExamples(foundExamples);
   }, [props.examples]);
@@ -53,7 +47,7 @@ export const ExamplesList = (props: ExamplesListProps): ReactElement => {
 
     const foundExamples = searchForExamples(debouncedSearchPhrase);
     setExamples(foundExamples);
-  }, [debouncedSearchPhrase]);
+  }, [debouncedSearchPhrase, props]);
 
   return (
     <div className={css.examplesWrapper}>

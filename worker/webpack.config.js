@@ -1,7 +1,7 @@
 const path = require('path');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-const TSConfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
+const { TsconfigPathsPlugin } = require('tsconfig-paths-webpack-plugin');
 
 const getConfig = (entryFile, outputFile) => ({
   context: __dirname,
@@ -10,12 +10,18 @@ const getConfig = (entryFile, outputFile) => ({
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: outputFile,
+    globalObject: 'this',
+    library: {
+      name: 'gql-grammar-worker',
+      type: 'umd',
+    },
   },
   resolve: {
     extensions: ['.ts', '.js', '.json'],
     plugins: [
-      new TSConfigPathsPlugin(),
+      new TsconfigPathsPlugin(),
     ],
+    symlinks: false,
   },
   module: {
     rules: [
@@ -66,5 +72,6 @@ const getConfig = (entryFile, outputFile) => ({
 
 module.exports = [
   getConfig('./src/latest/worker.ts', 'latest.worker.js'),
+  getConfig('./src/pg-schema/worker.ts', 'pg-schema.worker.js'),
   getConfig('./src/index.ts', 'index.js'),
 ];

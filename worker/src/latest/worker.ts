@@ -1,13 +1,17 @@
 import { GrammarEvent } from '$types/grammar-event';
 import { GrammarEventType } from '$types/grammar-event-type';
-import { CharStreams, CommonTokenStream } from 'antlr4';
 import { ParsingErrorListener } from '$latest/parsing-error-listener';
 import { GrammarEventResultParse } from '$types/grammar-event-result-parse';
 import { GrammarEventResultUtilities } from '$types/grammar-event-result-utilities';
 import { GrammarEventResultInit } from '$types/grammar-event-result-init';
-import { examples, GqlLexer, GqlParser } from '@gql-grammar/core/dist/versions/latest';
-
-console.log(examples, GqlLexer, GqlParser);
+import { SuggestionsProvider } from '$shared/code-suggestion/suggestions-provider';
+import { examples, GqlParser } from '@gql-grammar/core/dist/versions/latest';
+import { CaseKind } from '$shared/code-suggestion/types/case-kind';
+import { ParseTreeExtractor } from '$shared/parse-tree/parse-tree-extractor';
+import { GrammarBuilder } from '$shared/grammar-builder/grammar-builder';
+import { CommonSyntaxObjects } from '$shared/grammar-builder/common-syntax-objects';
+import { createLexer } from '$latest/create-lexer';
+import { createParser } from '$latest/create-parser';
 
 onmessage = ({ data }: MessageEvent<GrammarEvent>): void => {
   const { type } = data;
@@ -15,19 +19,27 @@ onmessage = ({ data }: MessageEvent<GrammarEvent>): void => {
   switch (type) {
     case GrammarEventType.Parse: {
       const { payload } = data;
-      const charStream = CharStreams.fromString(payload.text);
-      const lexer = new GqlLexer(charStream);
-      const commonTokenStream = new CommonTokenStream(lexer);
-      const parser = new GqlParser(commonTokenStream);
-      const parsingErrorListener = new ParsingErrorListener();
-      // @ts-ignore
-      parser.addErrorListener(parsingErrorListener);
-      parser.gqlProgram();
+      const text = payload.text;
+      const lexer = createLexer(text);
+      const errorListener = new ParsingErrorListener();
+      const parser = createParser(lexer);
+
+      parser.addErrorListener(errorListener);
+
+      const codeSuggestion = new SuggestionsProvider(createLexer, createParser, CaseKind.Both);
+      const suggestions = codeSuggestion.suggest(text);
+      const parseOutput = parser.gqlProgram();
+      const parseTreeExtractor = new ParseTreeExtractor(parser);
+      const parseTree = parseTreeExtractor.extract(parseOutput);
+      const { errors } = errorListener;
+      const isInvalid = errors.length !== 0;
 
       const result: GrammarEventResultParse = {
-        text: payload.text,
-        errors: parsingErrorListener.errors,
-        isInvalid: parsingErrorListener.errors.length !== 0,
+        text,
+        suggestions,
+        parseTree,
+        errors,
+        isInvalid,
       };
 
       postMessage(result);
@@ -36,10 +48,8 @@ onmessage = ({ data }: MessageEvent<GrammarEvent>): void => {
 
     case GrammarEventType.Utilities: {
       const { payload } = data;
-      const charStream = CharStreams.fromString(payload.text);
-      const lexer = new GqlLexer(charStream);
-      const commonTokenStream = new CommonTokenStream(lexer);
-      const parser = new GqlParser(commonTokenStream);
+      const lexer = createLexer(payload.text);
+      const parser = createParser(lexer);
 
       const result: GrammarEventResultUtilities<typeof lexer, typeof parser> = {
         lexer,
@@ -51,18 +61,16 @@ onmessage = ({ data }: MessageEvent<GrammarEvent>): void => {
     }
 
     case GrammarEventType.Initialize: {
-      const symbolicNames: string[] = GqlParser.symbolicNames
-        .filter((symbolicName) => symbolicName !== null)
-        .map((symbolicName) => (symbolicName !== null ? symbolicName : ''));
-
-      const literalNames = GqlParser.literalNames
-        .filter((literalName) => literalName !== null)
-        .map((literalName) => (literalName !== null ? literalName : ''));
+      const grammarDefinition = new GrammarBuilder()
+        .withName('GQL')
+        .withDataFromAntlr(GqlParser.literalNames)
+        .withSyntaxObject(CommonSyntaxObjects.CLikeComment)
+        .withSyntaxObject(CommonSyntaxObjects.String)
+        .build();
 
       const result: GrammarEventResultInit = {
-        symbolicNames,
-        literalNames,
-        examples: examples,
+        grammarDefinition,
+        examples,
       };
 
       postMessage(result);

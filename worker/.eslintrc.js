@@ -5,9 +5,10 @@ module.exports = {
   env: {
     es2021: true,
     node: true,
+    jest: true,
   },
   extends: ['alloy', 'alloy/typescript', 'prettier'],
-  plugins: ['prettier'],
+  plugins: ['prettier', 'jest'],
   overrides: [],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -16,6 +17,7 @@ module.exports = {
   },
   rules: {
     'prettier/prettier': ['error', prettierConfig],
+    'max-nested-callbacks': 'off',
   },
   ignorePatterns: ['src/generated/**/*', 'scripts/**/*'],
 };

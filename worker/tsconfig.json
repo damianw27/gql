@@ -2,17 +2,30 @@
   "compilerOptions": {
     "target": "ES5",
     "module": "CommonJS",
-    "rootDir": "./src",
-    "outDir": "./dist",
     "declaration": true,
-    "strict": false,
+    "strict": true,
     "newLine": "lf",
-    "allowJs": false,
-    "baseUrl": "./",
+    "allowJs": true,
+    "downlevelIteration": true,
+    "outDir": "dist",
+    "declarationDir": "dist",
+    "baseUrl": ".",
     "paths": {
-      "$/*": ["src/*"],
-      "$latest/*": ["src/latest/*"],
-      "$types/*": ["src/types/*"]
+      "$root/*": [
+        "src/*"
+      ],
+      "$latest/*": [
+        "src/latest/*"
+      ],
+      "$shared/*": [
+        "src/shared/*"
+      ],
+      "$test/*": [
+        "test/*"
+      ],
+      "$types/*": [
+        "src/types/*"
+      ]
     }
   },
   "include": [

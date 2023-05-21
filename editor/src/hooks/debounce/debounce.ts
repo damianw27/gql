@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 
-export const useDebounce = <T>(value: T, delay: number): T => {
+type AcceptableTypes = number | string | boolean | object;
+
+export const useDebounce = <T extends AcceptableTypes>(value: T, delay: number): T => {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
-    const handler = setTimeout(() => {
+    const timer = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
 
     return () => {
-      clearTimeout(handler);
+      clearTimeout(timer);
     };
   }, [value, delay]);
 

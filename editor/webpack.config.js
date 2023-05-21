@@ -4,12 +4,12 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const WorkboxWebpackPlugin = require('workbox-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
 const getConfig = () => ({
   entry: path.resolve(__dirname, 'src', 'index.tsx'),
-  devtool: 'source-map',
   output: {
     path: path.resolve(__dirname, 'build'),
     filename: 'editor.js',
@@ -44,7 +44,12 @@ const getConfig = () => ({
         {
           from: 'latest.worker.js',
           to: 'workers',
-          context: '../../node_modules/@gql-grammar/worker/dist/',
+          context: 'node_modules/@gql-grammar/worker/dist/',
+        },
+        {
+          from: 'pg-schema.worker.js',
+          to: 'workers',
+          context: 'node_modules/@gql-grammar/worker/dist/',
         },
       ],
     }),
@@ -85,6 +90,32 @@ const getConfig = () => ({
         test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
         type: 'asset',
       },
+    ],
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          parse: {
+            ecma: 8,
+          },
+          compress: {
+            ecma: 5,
+            warnings: false,
+            comparisons: false,
+          },
+          mangle: {
+            safari10: true,
+          },
+          output: {
+            ecma: 5,
+            comments: false,
+            ascii_only: true,
+          },
+        },
+        parallel: true,
+      }),
     ],
   },
 });
