@@ -42,9 +42,17 @@ export const useHighlights = ({ specification, parseResult }: UseHighlightsProps
     const hasError = hasLineAnyError(index + 1);
 
     return (
-      <tr key={`code-line-${index}`} className={hasError ? css.codeLineError : undefined}>
-        <td className={css.lineNumberCell}>{index + 1}</td>
-        <td className={css.codeLine}>{parse(line)}</td>
+      <tr
+        key={`code-line-${index}`}
+        className={hasError ? css.codeLineError : undefined}
+        data-testid="ti-higlights-code-line"
+      >
+        <td className={css.lineNumberCell} data-testid="ti-higlights-code-line--number-cell">
+          {index + 1}
+        </td>
+        <td className={css.codeLine} data-testid="ti-higlights-code-line--code-cell">
+          {parse(line)}
+        </td>
       </tr>
     );
   };
@@ -105,12 +113,12 @@ export const useHighlights = ({ specification, parseResult }: UseHighlightsProps
 
       return (
         <>
-          <div className={css.highlightBackground}>
-            <div className={css.highlightLineNumberBackground} />
-            <div className={css.highlightLineBackground} />
+          <div className={css.highlightBackground} data-testid="ti-higlights--bg">
+            <div className={css.highlightLineNumberBackground} data-testid="ti-higlights--line-number-bg" />
+            <div className={css.highlightLineBackground} data-testid="ti-higlights--line-bg" />
           </div>
-          <table className={css.table}>
-            <tbody>{highlighted}</tbody>
+          <table className={css.table} data-testid="ti-higlights--code-table">
+            <tbody data-testid="ti-higlights--code-table-body">{highlighted}</tbody>
           </table>
         </>
       );

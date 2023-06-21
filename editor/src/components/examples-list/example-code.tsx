@@ -39,7 +39,7 @@ export const ExampleCode = (props: ExampleCodeProps): ReactElement => {
     highlight(input, props.grammar, 'gql').replace(NODE_REGEX, splitMultilineNode).split(NEW_LINE).map(assemblyLine);
 
   return (
-    <pre className={css.exampleCode}>
+    <pre className={css.exampleCode} data-testid="ti-examples-list-item--code">
       <div className={styles.highlightBackground}>
         <div className={styles.highlightLineNumberBackground} />
         <div className={styles.highlightLineBackground} />

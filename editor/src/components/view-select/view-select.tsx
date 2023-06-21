@@ -15,16 +15,18 @@ export const ViewSelect = ({ value, onViewSelectChange }: ViewSelectProps): Reac
   );
 
   return (
-    <div className={styles.viewSelect}>
+    <div className={styles.viewSelect} data-testid="ti-view-select--wrapper">
       <button
         onClick={() => onViewSelectChange(CodeEditorViewType.Editor)}
         className={getClassName(CodeEditorViewType.Editor)}
+        data-testid="ti-view-select--editor-button"
       >
         Editor
       </button>
       <button
         onClick={() => onViewSelectChange(CodeEditorViewType.ParseTree)}
         className={getClassName(CodeEditorViewType.ParseTree)}
+        data-testid="ti-view-select--wrapper--parse-tree"
       >
         Parse Tree
       </button>

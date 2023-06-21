@@ -14,29 +14,36 @@ interface ErrorsListProps {
 export const ErrorsList = (props: ErrorsListProps): ReactElement => {
   if (props.isParsing) {
     return (
-      <span className={styles.parsing}>
+      <span className={styles.parsing} data-testid="ti-parsing-status-working">
         <SpinnerIcon width={16} height={16} />
-        <span className={styles.parsingStr}>Parsing...</span>
+        <span className={styles.parsingStr} data-testid="ti-parsing-status-working--label">
+          Parsing...
+        </span>
       </span>
     );
   }
 
   if (props.errors.length === 0) {
     return (
-      <span className={styles.noErrors}>
+      <span className={styles.noErrors} data-testid="ti-parsing-status-no-errors">
         <CheckIcon />
-        <span className={styles.noErrorsStr}>No errors!</span>
+        <span className={styles.noErrorsStr} data-testid="ti-parsing-status-no-errors--label">
+          No errors!
+        </span>
       </span>
     );
   }
 
   return (
-    <div className={styles.errorsWrapper}>
-      <span className={styles.foundErrors}>
+    <div className={styles.errorsWrapper} data-testid="ti-parsing-status-errors--wrapper">
+      <span className={styles.foundErrors} data-testid="ti-parsing-status-errors">
         <ExclamationIcon />
-        <span className={styles.foundErrorsStr}>{`Found '${props.errors.length}' parser errors`}</span>
+        <span
+          className={styles.foundErrorsStr}
+          data-testid="ti-parsing-status-errors--label"
+        >{`Found '${props.errors.length}' parser errors`}</span>
       </span>
-      <ul className={styles.errorsList}>
+      <ul className={styles.errorsList} data-testid="ti-parsing-status-errors--errors-list">
         {props.errors.map((error, index) => (
           <ErrorsListItem key={`code-error-${index + new Date().getUTCDate()}`} errorIndex={index} error={error} />
         ))}

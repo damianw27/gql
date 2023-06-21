@@ -8,8 +8,8 @@ export interface ParseTreeViewProps {
   readonly parseTree: ParseTree;
 }
 
-const VALID_LEAF_COLOR = '#AFA';
-const INVALID_LEAF_COLOR = '#FAA';
+const VALID_LEAF_COLOR = '#6F6';
+const INVALID_LEAF_COLOR = '#F65';
 
 const loadDataFromParseTree = (nodes: Node[], edges: Edge[], treeNodes: TreeNode[]): void => {
   const stack: { treeNodes: TreeNode[]; level: number; parent?: Node }[] = [];
@@ -87,7 +87,11 @@ export const ParseTreeView = ({ parseTree }: ParseTreeViewProps) => {
 
   return (
     <div className={css.parseTree}>
-      {isRendering ? 'Rendering...' : <div ref={containerRef} className={css.parseTreeView} />}
+      {isRendering ? (
+        'Rendering...'
+      ) : (
+        <div ref={containerRef} className={css.parseTreeView} data-testid="ti-parse-tree--container" />
+      )}
     </div>
   );
 };

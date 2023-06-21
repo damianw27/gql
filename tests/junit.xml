@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="22" failures="16" errors="0" time="157.676">
+  <testsuite name="Code Editor" errors="0" failures="2" skipped="0" timestamp="2023-06-20T23:47:57" time="13.813" tests="6">
+    <testcase classname="Code Editor entering new text to the editor" name="Code Editor entering new text to the editor" time="2.421">
+    </testcase>
+    <testcase classname="Code Editor entering new invalid text to the editor" name="Code Editor entering new invalid text to the editor" time="1.834">
+    </testcase>
+    <testcase classname="Code Editor render errors for invalid input" name="Code Editor render errors for invalid input" time="1.553">
+    </testcase>
+    <testcase classname="Code Editor mark lines containing errors with red background" name="Code Editor mark lines containing errors with red background" time="1.562">
+      <failure>ReferenceError: getComputedStyle is not defined
+    at F:\Projects\magister\tests\src\e2e\code-editor.spec.ts:109:35
+    at step (F:\Projects\magister\tests\src\e2e\code-editor.spec.ts:33:23)
+    at Object.next (F:\Projects\magister\tests\src\e2e\code-editor.spec.ts:14:53)
+    at fulfilled (F:\Projects\magister\tests\src\e2e\code-editor.spec.ts:5:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Code Editor render no errors message on valid input" name="Code Editor render no errors message on valid input" time="2.075">
+    </testcase>
+    <testcase classname="Code Editor switching formal languages should switch parser" name="Code Editor switching formal languages should switch parser" time="0.195">
+      <failure>Error: Node is either not clickable or not an HTMLElement
+    at CDPElementHandle.clickablePoint (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\ElementHandle.ts:249:13)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at CDPElementHandle.click (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\ElementHandle.ts:360:20)</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Parse Tree Preview" errors="0" failures="2" skipped="0" timestamp="2023-06-20T23:48:11" time="67.496" tests="2">
+    <testcase classname="Parse Tree Preview render indicator for parse result processing while ongoing processing" name="Parse Tree Preview render indicator for parse result processing while ongoing processing" time="33.694">
+      <failure>Error: expect(received).toBeTruthy()
+
+Received: false
+    at F:\Projects\magister\tests\src\e2e\parse-tree.spec.ts:61:25
+    at step (F:\Projects\magister\tests\src\e2e\parse-tree.spec.ts:33:23)
+    at Object.next (F:\Projects\magister\tests\src\e2e\parse-tree.spec.ts:14:53)
+    at fulfilled (F:\Projects\magister\tests\src\e2e\parse-tree.spec.ts:5:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Parse Tree Preview render parse tree after parse result is processed" name="Parse Tree Preview render parse tree after parse result is processed" time="32.288">
+      <failure>Error: expect(received).toBeTruthy()
+
+Received: false
+    at F:\Projects\magister\tests\src\e2e\parse-tree.spec.ts:88:25
+    at step (F:\Projects\magister\tests\src\e2e\parse-tree.spec.ts:33:23)
+    at Object.next (F:\Projects\magister\tests\src\e2e\parse-tree.spec.ts:14:53)
+    at fulfilled (F:\Projects\magister\tests\src\e2e\parse-tree.spec.ts:5:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Share Code" errors="0" failures="3" skipped="0" timestamp="2023-06-20T23:49:18" time="67.23" tests="3">
+    <testcase classname="Share Code clicking share button should copy link" name="Share Code clicking share button should copy link" time="22.481">
+      <failure>Error: expect(received).not.toBe(expected) // Object.is equality
+
+Expected: not &quot;initial input should be invalid with changed language&quot;
+    at F:\Projects\magister\tests\src\e2e\share-code.spec.ts:68:37
+    at step (F:\Projects\magister\tests\src\e2e\share-code.spec.ts:33:23)
+    at Object.next (F:\Projects\magister\tests\src\e2e\share-code.spec.ts:14:53)
+    at fulfilled (F:\Projects\magister\tests\src\e2e\share-code.spec.ts:5:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Share Code generated link should proceed to provided code" name="Share Code generated link should proceed to provided code" time="21.754">
+      <failure>ProtocolError: Protocol error (Page.navigate): Cannot navigate to invalid URL
+    at new Callback (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\Connection.ts:66:12)
+    at CallbackRegistry.create (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\Connection.ts:127:22)
+    at Connection._rawSend (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\Connection.ts:278:22)
+    at CDPSessionImpl.send (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\Connection.ts:537:29)
+    at navigate (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\Frame.ts:163:39)
+    at Frame.goto (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\Frame.ts:128:7)
+    at CDPPage.goto (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\Page.ts:939:35)
+    at F:\Projects\magister\tests\src\e2e\share-code.spec.ts:91:18
+    at step (F:\Projects\magister\tests\src\e2e\share-code.spec.ts:33:23)
+    at Object.next (F:\Projects\magister\tests\src\e2e\share-code.spec.ts:14:53)
+    at fulfilled (F:\Projects\magister\tests\src\e2e\share-code.spec.ts:5:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Share Code sharing code with link should work on already shared code link" name="Share Code sharing code with link should work on already shared code link" time="21.391">
+      <failure>ProtocolError: Protocol error (Page.navigate): Cannot navigate to invalid URL
+    at new Callback (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\Connection.ts:66:12)
+    at CallbackRegistry.create (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\Connection.ts:127:22)
+    at Connection._rawSend (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\Connection.ts:278:22)
+    at CDPSessionImpl.send (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\Connection.ts:537:29)
+    at navigate (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\Frame.ts:163:39)
+    at Frame.goto (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\Frame.ts:128:7)
+    at CDPPage.goto (F:\Projects\magister\tests\node_modules\puppeteer-core\src\common\Page.ts:939:35)
+    at F:\Projects\magister\tests\src\e2e\share-code.spec.ts:119:18
+    at step (F:\Projects\magister\tests\src\e2e\share-code.spec.ts:33:23)
+    at Object.next (F:\Projects\magister\tests\src\e2e\share-code.spec.ts:14:53)
+    at fulfilled (F:\Projects\magister\tests\src\e2e\share-code.spec.ts:5:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Formal Language Examples" errors="0" failures="5" skipped="0" timestamp="2023-06-20T23:50:26" time="3.155" tests="5">
+    <testcase classname="Formal Language Examples the user selects an example" name="Formal Language Examples the user selects an example" time="0.682">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;click&apos;)
+    at F:\Projects\magister\tests\src\e2e\examples.spec.ts:45:25
+    at step (F:\Projects\magister\tests\src\e2e\examples.spec.ts:33:23)
+    at Object.next (F:\Projects\magister\tests\src\e2e\examples.spec.ts:14:53)
+    at fulfilled (F:\Projects\magister\tests\src\e2e\examples.spec.ts:5:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Formal Language Examples selecting of example should move to upper part of page" name="Formal Language Examples selecting of example should move to upper part of page" time="0.381">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;click&apos;)
+    at F:\Projects\magister\tests\src\e2e\examples.spec.ts:61:25
+    at step (F:\Projects\magister\tests\src\e2e\examples.spec.ts:33:23)
+    at Object.next (F:\Projects\magister\tests\src\e2e\examples.spec.ts:14:53)
+    at fulfilled (F:\Projects\magister\tests\src\e2e\examples.spec.ts:5:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Formal Language Examples selecting of different formal language should change examples" name="Formal Language Examples selecting of different formal language should change examples" time="0.114">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;jsonValue&apos;)
+    at F:\Projects\magister\tests\src\e2e\examples.spec.ts:82:51
+    at step (F:\Projects\magister\tests\src\e2e\examples.spec.ts:33:23)
+    at Object.next (F:\Projects\magister\tests\src\e2e\examples.spec.ts:14:53)
+    at fulfilled (F:\Projects\magister\tests\src\e2e\examples.spec.ts:5:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Formal Language Examples providing search phrase should change list of examples" name="Formal Language Examples providing search phrase should change list of examples" time="0.202">
+      <failure>Error: expect(received).not.toBe(expected) // Object.is equality
+
+Expected: not 0
+    at F:\Projects\magister\tests\src\e2e\examples.spec.ts:122:42
+    at step (F:\Projects\magister\tests\src\e2e\examples.spec.ts:33:23)
+    at Object.next (F:\Projects\magister\tests\src\e2e\examples.spec.ts:14:53)
+    at fulfilled (F:\Projects\magister\tests\src\e2e\examples.spec.ts:5:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Formal Language Examples removing searching phrase should reset list of examples" name="Formal Language Examples removing searching phrase should reset list of examples" time="0.228">
+      <failure>Error: expect(received).not.toBe(expected) // Object.is equality
+
+Expected: not 0
+    at F:\Projects\magister\tests\src\e2e\examples.spec.ts:150:42
+    at step (F:\Projects\magister\tests\src\e2e\examples.spec.ts:33:23)
+    at Object.next (F:\Projects\magister\tests\src\e2e\examples.spec.ts:14:53)
+    at fulfilled (F:\Projects\magister\tests\src\e2e\examples.spec.ts:5:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Autocomplete" errors="0" failures="4" skipped="0" timestamp="2023-06-20T23:50:29" time="4.18" tests="6">
+    <testcase classname="Autocomplete the user selects a suggestion with arrow up and enter keys" name="Autocomplete the user selects a suggestion with arrow up and enter keys" time="0.903">
+      <failure>Error: expect(received).toBeTruthy()
+
+Received: false
+    at F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:48:45
+    at step (F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:33:23)
+    at Object.next (F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:14:53)
+    at fulfilled (F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:5:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Autocomplete the user selects a suggestion with arrow down and enter keys" name="Autocomplete the user selects a suggestion with arrow down and enter keys" time="0.438">
+      <failure>Error: expect(received).toBeTruthy()
+
+Received: false
+    at F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:77:43
+    at step (F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:33:23)
+    at Object.next (F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:14:53)
+    at fulfilled (F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:5:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Autocomplete the user cancels the suggestion with the escape key" name="Autocomplete the user cancels the suggestion with the escape key" time="0.181">
+      <failure>Error: expect(received).toBeNull()
+
+Received: {&quot;handle&quot;: {}}
+    at F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:101:32
+    at step (F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:33:23)
+    at Object.next (F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:14:53)
+    at fulfilled (F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:5:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Autocomplete the user shows suggestions with ctrl + enter keys" name="Autocomplete the user shows suggestions with ctrl + enter keys" time="0.224">
+    </testcase>
+    <testcase classname="Autocomplete the user types word that is not in the list" name="Autocomplete the user types word that is not in the list" time="0.24">
+      <failure>Error: expect(received).toBeNull()
+
+Received: {&quot;handle&quot;: {}}
+    at F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:155:32
+    at step (F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:33:23)
+    at Object.next (F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:14:53)
+    at fulfilled (F:\Projects\magister\tests\src\e2e\autocomplete.spec.ts:5:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Autocomplete the user types a keyword that partially matches suggestions" name="Autocomplete the user types a keyword that partially matches suggestions" time="0.699">
+    </testcase>
+  </testsuite>
+</testsuites>

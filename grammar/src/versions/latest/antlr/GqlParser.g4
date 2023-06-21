@@ -1394,7 +1394,10 @@ commonValueExpr:
 	| recordValueExpr
 	| pathValueExpr
 	| refValueExpr
-	| propertyName (PERIOD propertyName)+;
+	| commonValuePropertiesGroup;
+
+commonValuePropertiesGroup:
+  (propertyName (PERIOD propertyName)+);
 
 refValueExpr:
 	graphRefValueExpr

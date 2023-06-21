@@ -57,6 +57,7 @@ export const ShareButton = (props: ShareButtonProps): ReactElement => {
       onClick={handleClick}
       isLoading={isLoading}
       isCopied={isCopied}
+      testId="ti-share-button"
     />
   );
 };

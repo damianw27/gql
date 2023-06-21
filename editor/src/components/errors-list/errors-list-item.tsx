@@ -12,7 +12,11 @@ export const ErrorsListItem = (props: ErrorsListItemProps): ReactElement => {
     `[line ${error.lineIndex}:${error.charPosition}] ${error.message}`;
 
   return (
-    <li key={`code-error-${props.errorIndex}`} className={styles.errorsListElement}>
+    <li
+      key={`code-error-${props.errorIndex}`}
+      className={styles.errorsListElement}
+      data-testid={`ti-parsing-status-errors--errors-list-element-${props.errorIndex}`}
+    >
       {parserErrorToString(props.error)}
     </li>
   );

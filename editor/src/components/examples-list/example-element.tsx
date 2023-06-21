@@ -11,8 +11,10 @@ interface ExampleElementProps {
 }
 
 export const ExampleElement = (props: ExampleElementProps): ReactElement => (
-  <li className={css.example} onClick={() => props.onClick(props.example)}>
-    <div className={css.exampleHeader}>{props.example.name}</div>
+  <li className={css.example} onClick={() => props.onClick(props.example)} data-testid="ti-examples-list-item">
+    <div className={css.exampleHeader} data-testid="ti-examples-list-item--title">
+      {props.example.name}
+    </div>
     <ExampleCode example={props.example} grammar={props.grammar} />
   </li>
 );

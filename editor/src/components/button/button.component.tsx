@@ -18,8 +18,10 @@ export const Button = (props: ButtonProps): ReactElement => {
   const drawLabelWithIcon = (label: string, icon?: ReactElement): ReactElement => {
     if (icon === undefined) {
       return (
-        <div className={css.buttonContentWrapper}>
-          <div className={css.buttonLabelWrapper}>{label}</div>
+        <div className={css.buttonContentWrapper} data-testid={`${props.testId}--btn-content`}>
+          <div className={css.buttonLabelWrapper} data-testid={`${props.testId}--btn-label`}>
+            {label}
+          </div>
         </div>
       );
     }
@@ -27,26 +29,36 @@ export const Button = (props: ButtonProps): ReactElement => {
     switch (props.iconPlacement) {
       case ButtonIconPlacement.Left: {
         return (
-          <div className={css.buttonContentWrapper}>
-            <div className={css.buttonIconWrapper}>{icon}</div>
-            <div className={css.buttonLabelWrapper}>{label}</div>
+          <div className={css.buttonContentWrapper} data-testid={`${props.testId}--btn-content`}>
+            <div className={css.buttonIconWrapper} data-testid={`${props.testId}--btn-icon-left`}>
+              {icon}
+            </div>
+            <div className={css.buttonLabelWrapper} data-testid={`${props.testId}--btn-label`}>
+              {label}
+            </div>
           </div>
         );
       }
 
       case ButtonIconPlacement.Right: {
         return (
-          <div className={css.buttonContentWrapper}>
-            <div className={css.buttonLabelWrapper}>{label}</div>
-            <div className={css.buttonIconWrapper}>{icon}</div>
+          <div className={css.buttonContentWrapper} data-testid={`${props.testId}--btn-content`}>
+            <div className={css.buttonLabelWrapper} data-testid={`${props.testId}--btn-label`}>
+              {label}
+            </div>
+            <div className={css.buttonIconWrapper} data-testid={`${props.testId}--btn-icon-right`}>
+              {icon}
+            </div>
           </div>
         );
       }
 
       default: {
         return (
-          <div className={css.buttonContentWrapper}>
-            <div className={css.buttonLabelWrapper}>{label}</div>
+          <div className={css.buttonContentWrapper} data-testid={`${props.testId}--btn-content`}>
+            <div className={css.buttonLabelWrapper} data-testid={`${props.testId}--btn-label`}>
+              {label}
+            </div>
           </div>
         );
       }

@@ -3,7 +3,6 @@ import Editor from 'react-simple-code-editor';
 import css from './code-editor.module.css';
 import { useCodeLoader } from '$hooks/code-loader/code-loader';
 import { useHighlights } from '$hooks/highlights/highlights';
-import { ButtonGroup } from '$components/button-group/button-group';
 import { ShareButton } from '$components/share-button/share-button';
 import { ErrorsList } from '$components/errors-list/errors-list';
 import { ExamplesList } from '$components/examples-list/examples-list';
@@ -116,10 +115,12 @@ export const CodeEditor = (props: EditorProps): ReactElement => {
   }, [loadedCode]);
 
   return (
-    <div className={css.codeEditorGrid}>
-      <div className={css.editorColumn}>
-        <div className={css.editorHeader}>Code Editor</div>
-        <div className={css.editorTooltip}>
+    <div className={css.codeEditorGrid} data-testid="ti-code-editor-grid">
+      <div className={css.editorColumn} data-testid="ti-code-editor-column">
+        <div className={css.editorHeader} data-testid="ti-code-editor-column-title">
+          Code Editor
+        </div>
+        <div className={css.editorTooltip} data-testid="ti-code-editor-toolbar">
           <ShareButton code={props.value} />
           <div className={css.editorTooltipSeparator} />
           <ViewSelect value={currentView} onViewSelectChange={(viewType) => setCurrentView(viewType)} />
@@ -128,7 +129,7 @@ export const CodeEditor = (props: EditorProps): ReactElement => {
         </div>
         {currentView === CodeEditorViewType.Editor && (
           <>
-            <div className={css.editorWrapper}>
+            <div className={css.editorWrapper} data-testid="ti-code-editor-wrapper">
               <Editor
                 value={props.value}
                 onValueChange={handleValueChange}
@@ -153,7 +154,7 @@ export const CodeEditor = (props: EditorProps): ReactElement => {
         )}
         {currentView === CodeEditorViewType.ParseTree && <ParseTreeView parseTree={parseResult?.parseTree ?? []} />}
       </div>
-      <div className={css.examplesColumn}>
+      <div className={css.examplesColumn} data-testid="ti-examples-column">
         <ExamplesList
           grammar={grammar || {}}
           examples={specification?.examples ?? []}

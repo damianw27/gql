@@ -50,15 +50,18 @@ export const ExamplesList = (props: ExamplesListProps): ReactElement => {
   }, [debouncedSearchPhrase, props]);
 
   return (
-    <div className={css.examplesWrapper}>
-      <div className={css.examplesHeader}>Examples</div>
+    <div className={css.examplesWrapper} data-testid="ti-examples-wrapper">
+      <div className={css.examplesHeader} data-testid="ti-examples-title">
+        Examples
+      </div>
       <input
         type="text"
         className={css.examplesSearch}
         placeholder="Search..."
         onChange={(event) => setSearchPhrase(event.target.value)}
+        data-testid="ti-examples-search-input"
       />
-      <ul className={css.examplesList}>
+      <ul className={css.examplesList} data-testid="ti-examples-list">
         {examples.map((example, index) => (
           <ExampleElement
             key={`example-${index + 1}`}

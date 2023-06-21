@@ -1,0 +1,14 @@
+[0] Config.pm:307> INFO - This is Biber 2.19
+[0] Config.pm:310> INFO - Logfile is 'main.blg'
+[151] biber-MSWIN64:340> INFO - === 
+[203] Biber.pm:419> INFO - Reading 'F:\Projects\magister\document\main.bcf'
+[366] Biber.pm:976> INFO - Using all citekeys in bib section 0
+[386] Biber.pm:4419> INFO - Processing section 0
+[403] Biber.pm:4610> INFO - Looking for bibtex file 'references/bibliograpy.bib' for section 0
+[462] bibtex.pm:1713> INFO - LaTeX decoding ...
+[479] bibtex.pm:1519> INFO - Found BibTeX data source 'F:\Projects\magister\document\references\bibliograpy.bib'
+[602] UCollate.pm:68> INFO - Overriding locale 'pl-PL' defaults 'variable = shifted' with 'variable = non-ignorable'
+[602] UCollate.pm:68> INFO - Overriding locale 'pl-PL' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[602] Biber.pm:4239> INFO - Sorting list 'ynt/global//global/global' of type 'entry' with template 'ynt' and locale 'pl-PL'
+[619] bbl.pm:660> INFO - Writing 'main.bbl' with encoding 'UTF-8'
+[625] bbl.pm:763> INFO - Output to main.bbl

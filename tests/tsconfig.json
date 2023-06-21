@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "module": "CommonJS",
+    "declaration": true,
+    "strict": true,
+    "newLine": "lf",
+    "allowJs": true,
+    "downlevelIteration": true,
+    "outDir": "dist",
+    "declarationDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "$root/*": [
+        "src/*"
+      ],
+      "$e2e/*": [
+        "src/e2e/*"
+      ],
+      "$performance/*": [
+        "src/performance/*"
+      ]
+    }
+  },
+  "include": [
+    "./src/**/*"
+  ]
+}
