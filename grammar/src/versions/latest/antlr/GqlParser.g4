@@ -671,8 +671,10 @@ insertElementPatternFiller:
 	| elementVarDeclaration? labelAndPropertySetSpec;
 
 labelAndPropertySetSpec:
-	isOrColon labelSetSpec elementPropertySpec?
-	| isOrColon labelSetSpec? elementPropertySpec;
+	(isOrColon labelSetSpec)
+	| (isOrColon labelSetSpec elementPropertySpec)
+	| (isOrColon elementPropertySpec)
+	| (isOrColon labelSetSpec elementPropertySpec);
 
 labelExpr: labelTerm (VERTICAL_BAR labelTerm)*;
 

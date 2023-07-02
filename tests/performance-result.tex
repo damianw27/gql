@@ -1,0 +1,31 @@
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+
+    \begin{axis} [
+      xbar = .05cm,
+      nodes near coords,
+      nodes near coords style={
+        /pgf/number format/precision=4,
+      },
+      xmin = 0,
+      ytick = data,
+      enlarge x limits = {value = .25, upper},
+      symbolic y coords = {[\ref{lst:wydajnosc-przyklad-p-1],[\ref{lst:wydajnosc-przyklad-p-2],[\ref{lst:wydajnosc-przyklad-p-3],[\ref{lst:wydajnosc-przyklad-p-4],[\ref{lst:wydajnosc-przyklad-p-5],[\ref{lst:wydajnosc-przyklad-p-6],[\ref{lst:wydajnosc-przyklad-p-7],[\ref{lst:wydajnosc-przyklad-p-8],[\ref{lst:wydajnosc-przyklad-p-9],[\ref{lst:wydajnosc-przyklad-p-10],[\ref{lst:wydajnosc-przyklad-p-11],[\ref{lst:wydajnosc-przyklad-p-12]},
+      xlabel=Czas (w milisekundach),
+      width=0.9\textwidth,
+      height=1.25\textwidth
+    ]
+
+      \addplot coordinates {(94.75139999389648,[\ref{lst:wydajnosc-przyklad-p-1}]) (89.39749997854233,[\ref{lst:wydajnosc-przyklad-p-2}]) (93.98629999160767,[\ref{lst:wydajnosc-przyklad-p-3}]) (93.21629995107651,[\ref{lst:wydajnosc-przyklad-p-4}]) (87.54240000247955,[\ref{lst:wydajnosc-przyklad-p-5}]) (91.19320005178452,[\ref{lst:wydajnosc-przyklad-p-6}]) (95.71679997444153,[\ref{lst:wydajnosc-przyklad-p-7}]) (81.05160003900528,[\ref{lst:wydajnosc-przyklad-p-8}]) (93.83749997615814,[\ref{lst:wydajnosc-przyklad-p-9}]) (99.60490000247955,[\ref{lst:wydajnosc-przyklad-p-10}]) (98.61129999160767,[\ref{lst:wydajnosc-przyklad-p-11}]) (97.24979996681213,[\ref{lst:wydajnosc-przyklad-p-12}])};
+      \addplot coordinates {(278.7291000187397,[\ref{lst:wydajnosc-przyklad-p-1}]) (233.0275999903679,[\ref{lst:wydajnosc-przyklad-p-2}]) (227.83279997110367,[\ref{lst:wydajnosc-przyklad-p-3}]) (1748.5557000041008,[\ref{lst:wydajnosc-przyklad-p-4}]) (14520.803200006485,[\ref{lst:wydajnosc-przyklad-p-5}]) (3522.330799996853,[\ref{lst:wydajnosc-przyklad-p-6}]) (23789.163300037384,[\ref{lst:wydajnosc-przyklad-p-7}]) (3861.325700044632,[\ref{lst:wydajnosc-przyklad-p-8}]) (24093.74239999056,[\ref{lst:wydajnosc-przyklad-p-9}]) (24627.718899965286,[\ref{lst:wydajnosc-przyklad-p-10}]) (15737.91479998827,[\ref{lst:wydajnosc-przyklad-p-11}]) (18466.716099977493,[\ref{lst:wydajnosc-przyklad-p-12}])};
+      \addplot coordinates {(116.01979900121688,[\ref{lst:wydajnosc-przyklad-p-1}]) (108.3480489987135,[\ref{lst:wydajnosc-przyklad-p-2}]) (111.74481050223112,[\ref{lst:wydajnosc-przyklad-p-3}]) (120.18434950083494,[\ref{lst:wydajnosc-przyklad-p-4}]) (180.79531150102616,[\ref{lst:wydajnosc-przyklad-p-5}]) (126.00977400094271,[\ref{lst:wydajnosc-przyklad-p-6}]) (233.49514849871397,[\ref{lst:wydajnosc-przyklad-p-7}]) (129.18286850273608,[\ref{lst:wydajnosc-przyklad-p-8}]) (236.18343949884175,[\ref{lst:wydajnosc-przyklad-p-9}]) (239.70925700098277,[\ref{lst:wydajnosc-przyklad-p-10}]) (193.02891049712898,[\ref{lst:wydajnosc-przyklad-p-11}]) (211.80588499993087,[\ref{lst:wydajnosc-przyklad-p-12}])};
+      \legend{Minimalny,Maksymalny,Średni}
+
+    \end{axis}
+
+  \end{tikzpicture}
+  \caption{Ogólne wyniki wydajności gramatyki}
+  \label{fig:wynik-gramatyka}
+\end{figure}

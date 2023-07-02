@@ -9,7 +9,7 @@
     "build:prod": "webpack --mode=production --node-env=production --config=./webpack.config.js",
     "serve": "webpack serve --config=./webpack.config.js",
     "deploy": "gh-pages -d build",
-    "test": "jest --no-cache"
+    "test": "jest --no-cache --coverage"
   },
   "dependencies": {
     "@gql-grammar/worker": "^1.0.4",

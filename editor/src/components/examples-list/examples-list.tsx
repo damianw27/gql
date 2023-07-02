@@ -5,10 +5,12 @@ import Fuse from 'fuse.js';
 import { GqlExample } from '@gql-grammar/core';
 import { useDebounce } from '$hooks/debounce/debounce';
 import { ExampleElement } from '$components/examples-list/example-element';
+import { SpinnerIcon } from '$icons/spinner-icon/spinner-icon';
 
 interface ExamplesListProps {
   readonly grammar: Grammar;
   readonly examples: GqlExample[];
+  readonly isLoading: boolean;
   readonly onExampleClick: (example: GqlExample) => void;
 }
 
@@ -61,16 +63,22 @@ export const ExamplesList = (props: ExamplesListProps): ReactElement => {
         onChange={(event) => setSearchPhrase(event.target.value)}
         data-testid="ti-examples-search-input"
       />
-      <ul className={css.examplesList} data-testid="ti-examples-list">
-        {examples.map((example, index) => (
-          <ExampleElement
-            key={`example-${index + 1}`}
-            example={example}
-            grammar={props.grammar}
-            onClick={(example) => handleExampleClick(example)}
-          />
-        ))}
-      </ul>
+      {props.isLoading ? (
+        <div className={css.examplesLoadingWrapper}>
+          <SpinnerIcon testId="ti-loading-examples" width="64" height="64" />
+        </div>
+      ) : (
+        <ul className={css.examplesList} data-testid="ti-examples-list">
+          {examples.map((example, index) => (
+            <ExampleElement
+              key={`example-${index + 1}`}
+              example={example}
+              grammar={props.grammar}
+              onClick={(example) => handleExampleClick(example)}
+            />
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

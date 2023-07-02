@@ -9,9 +9,21 @@ import { ErrorsListItem } from '$components/errors-list/errors-list-item';
 interface ErrorsListProps {
   readonly errors: GrammarParsingError[];
   readonly isParsing: boolean;
+  readonly isInitializing: boolean;
 }
 
 export const ErrorsList = (props: ErrorsListProps): ReactElement => {
+  if (props.isInitializing) {
+    return (
+      <span className={styles.parsing} data-testid="ti-parsing-status-initializing">
+        <SpinnerIcon width={16} height={16} />
+        <span className={styles.parsingStr} data-testid="ti-parsing-status-initializing--label">
+          Initializing...
+        </span>
+      </span>
+    );
+  }
+
   if (props.isParsing) {
     return (
       <span className={styles.parsing} data-testid="ti-parsing-status-working">

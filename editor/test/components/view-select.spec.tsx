@@ -12,14 +12,22 @@ describe('ViewSelect', () => {
 
   it('renders without crashing', () => {
     const { getByTestId } = render(
-      <ViewSelect value={CodeEditorViewType.Editor} onViewSelectChange={onViewSelectChangeMock} />,
+      <ViewSelect
+        value={CodeEditorViewType.Editor}
+        isParseTreeViewDisabled={false}
+        onViewSelectChange={onViewSelectChangeMock}
+      />,
     );
     expect(getByTestId('ti-view-select--wrapper')).toBeInTheDocument();
   });
 
   it('calls onViewSelectChange with correct value when buttons are clicked', () => {
     const { getByTestId } = render(
-      <ViewSelect value={CodeEditorViewType.Editor} onViewSelectChange={onViewSelectChangeMock} />,
+      <ViewSelect
+        value={CodeEditorViewType.Editor}
+        isParseTreeViewDisabled={false}
+        onViewSelectChange={onViewSelectChangeMock}
+      />,
     );
 
     fireEvent.click(getByTestId('ti-view-select--editor-button'));
@@ -31,11 +39,21 @@ describe('ViewSelect', () => {
 
   it('changes className based on selected view', () => {
     const { getByTestId, rerender } = render(
-      <ViewSelect value={CodeEditorViewType.Editor} onViewSelectChange={onViewSelectChangeMock} />,
+      <ViewSelect
+        value={CodeEditorViewType.Editor}
+        isParseTreeViewDisabled={false}
+        onViewSelectChange={onViewSelectChangeMock}
+      />,
     );
     expect(getByTestId('ti-view-select--editor-button').className).toContain('selectedOption');
 
-    rerender(<ViewSelect value={CodeEditorViewType.ParseTree} onViewSelectChange={onViewSelectChangeMock} />);
+    rerender(
+      <ViewSelect
+        value={CodeEditorViewType.ParseTree}
+        isParseTreeViewDisabled={false}
+        onViewSelectChange={onViewSelectChangeMock}
+      />,
+    );
     expect(getByTestId('ti-view-select--wrapper--parse-tree').className).toContain('selectedOption');
   });
 });

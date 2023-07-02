@@ -9,6 +9,7 @@ interface ParsingData {
 
 interface UseParsing extends ParsingData {
   readonly isParsing: boolean;
+  readonly isInitializing: boolean;
 }
 
 export const useParsing = (text: string, workerInfo: WorkerInfo): UseParsing => {
@@ -20,6 +21,7 @@ export const useParsing = (text: string, workerInfo: WorkerInfo): UseParsing => 
   const handleInitResponse = ({ data }: MessageEvent<GrammarEventResultInit>): void => {
     setParsingData({ specification: data });
     setIsInitializing(false);
+    setIsParsing(true);
   };
 
   const handleParseResponse = ({ data }: MessageEvent<GrammarEventResultParse>) => {
@@ -66,5 +68,6 @@ export const useParsing = (text: string, workerInfo: WorkerInfo): UseParsing => 
   return {
     ...parsingData,
     isParsing,
+    isInitializing,
   };
 };

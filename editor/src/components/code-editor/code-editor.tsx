@@ -24,7 +24,7 @@ interface EditorProps {
 export const CodeEditor = (props: EditorProps): ReactElement => {
   const [currentView, setCurrentView] = useState<CodeEditorViewType>(CodeEditorViewType.Editor);
   const [currentWorker, setCurrentWorker] = useState<WorkerInfo>(availableWorkers[0]);
-  const { isParsing, parseResult, specification } = useParsing(props.value, currentWorker);
+  const { isParsing, isInitializing, parseResult, specification } = useParsing(props.value, currentWorker);
   const { highlight, grammar } = useHighlights({ specification, parseResult });
   const loadedCode = useCodeLoader();
   const [caretData, setCaretData] = useState<CaretData>(defaultCaretData);
@@ -123,7 +123,11 @@ export const CodeEditor = (props: EditorProps): ReactElement => {
         <div className={css.editorTooltip} data-testid="ti-code-editor-toolbar">
           <ShareButton code={props.value} />
           <div className={css.editorTooltipSeparator} />
-          <ViewSelect value={currentView} onViewSelectChange={(viewType) => setCurrentView(viewType)} />
+          <ViewSelect
+            value={currentView}
+            isParseTreeViewDisabled={isInitializing || isParsing}
+            onViewSelectChange={(viewType) => setCurrentView(viewType)}
+          />
           <div className={css.editorTooltipSeparator} />
           <WorkerSelect value={currentWorker} onChange={setCurrentWorker} />
         </div>
@@ -142,7 +146,11 @@ export const CodeEditor = (props: EditorProps): ReactElement => {
                 autoFocus
               />
             </div>
-            <ErrorsList errors={parseResult?.errors ?? []} isParsing={isParsing ?? false} />
+            <ErrorsList
+              errors={parseResult?.errors ?? []}
+              isParsing={isParsing ?? false}
+              isInitializing={isInitializing}
+            />
             <Autocomplete
               code={props.value}
               caretData={caretData}
@@ -152,12 +160,15 @@ export const CodeEditor = (props: EditorProps): ReactElement => {
             />
           </>
         )}
-        {currentView === CodeEditorViewType.ParseTree && <ParseTreeView parseTree={parseResult?.parseTree ?? []} />}
+        {currentView === CodeEditorViewType.ParseTree && (
+          <ParseTreeView isParsing={isParsing} parseTree={parseResult?.parseTree ?? []} />
+        )}
       </div>
       <div className={css.examplesColumn} data-testid="ti-examples-column">
         <ExamplesList
           grammar={grammar || {}}
           examples={specification?.examples ?? []}
+          isLoading={isInitializing}
           onExampleClick={(example) => props.onValueChange(example.code)}
         />
       </div>

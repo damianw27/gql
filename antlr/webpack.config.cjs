@@ -2,18 +2,24 @@ const path = require('path');
 const ESLintPlugin  = require('eslint-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
-module.exports = {
+const moduleTypeExtension = {
+  'commonjs': 'cjs',
+  'es': 'mjs'
+}
+
+const createConfiguration = (platform, moduleType) => ({
   mode: 'production',
   entry: './src/index.js',
   devtool: 'source-map',
   experiments: {
-    outputModule: true,
+    outputModule: moduleType === 'es',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'index.js',
+    filename: `index.${platform}.${moduleTypeExtension[moduleType]}`,
+    chunkFormat: moduleType === "es" ? "module" : "commonjs",
     library: {
-      type: 'module',
+      type: moduleType === "mjs" ? "module" : "commonjs"
     },
   },
   resolve: {
@@ -58,4 +64,11 @@ module.exports = {
       }),
     ],
   },
-};
+});
+
+module.exports = [
+  createConfiguration('node', 'es'),
+  createConfiguration('node', 'commonjs'),
+  createConfiguration('web', 'es'),
+  createConfiguration('web', 'commonjs'),
+];

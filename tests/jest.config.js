@@ -12,7 +12,7 @@ module.exports = {
       prefix: '<rootDir>/',
     }),
   },
-  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/src/_helpers_/'],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/src/_helpers_/', '/src/performance/'],
   moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   maxConcurrency: 1,
   testTimeout: 9999999,

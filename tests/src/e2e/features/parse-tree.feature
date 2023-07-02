@@ -7,39 +7,14 @@ Feature: Parse Tree Preview
     When the editor's empty
     And the user provides valid large input
     And the user switches to parse tree view
-    Then first rendered element should be label "Rendering..."
+    Then should render spinner when processing
 
   Scenario: render parse tree after parse result is processed
     Given the user is on the application page
     When the editor's empty
     And the user provides valid large input
     And the user switches to parse tree view
-    And first rendered element should be label "Rendering..."
+    And rendering spinner when processing
     Then parse tree should be rendered properly
-#
-#  Scenario: rendered parse tree have properly colored terminal elements
-#    Given the user is on the application page
-#    When the editor's empty
-#    And the user provides valid small input
-#    And the user switches to parse tree view
-#    And the parse tree is rendered
-#    Then rendered terminal element should be colored as green
-#
-#  Scenario: rendered parse tree have properly colored non-terminal elements
-#    Given the user is on the application page
-#    When the editor's empty
-#    And the user provides valid small input
-#    And the user switches to parse tree view
-#    And the parse tree is rendered
-#    Then rendered non-terminal element should be colored as gray
-#
-#  Scenario: rendered parse tree have properly colored non-terminal elements with no children
-#    Given the user is on the application page
-#    When the editor's empty
-#    And the user provides valid small input
-#    And the user switches to parse tree view
-#    And the parse tree is rendered
-#    Then rendered non-terminal element with no children should be colored as red
-#
 
 

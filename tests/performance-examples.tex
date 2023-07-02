@@ -1,0 +1,77 @@
+
+\begin{lstlisting}[style=gqlStyle, label={lst:wydajnosc-przyklad-p-1}], caption={Przykład GQL 1}]
+CREATE GRAPH TYPE IF NOT EXISTS example_graph_type
+   AS {
+        (Person :Person {
+           "lastname" STRING,
+           "firstname" STRING,
+           "joined" DATE
+        }),
+        (City :City {"name" STRING, "state" STRING, "country" STRING}),
+        (Pet :Pet {"name" STRING, "type" STRING}),
+        (Person)-[LivesIn :LIVES_IN {"since" DATE}]->(City),
+        (Person)-[Knows :KNOWS]->(Person)
+   }
+\end{lstlisting}
+
+\begin{lstlisting}[style=gqlStyle, label={lst:wydajnosc-przyklad-p-2}], caption={Przykład GQL 2}]
+create graph test_graph like example_graph_type
+\end{lstlisting}
+
+\begin{lstlisting}[style=gqlStyle, label={lst:wydajnosc-przyklad-p-3}], caption={Przykład GQL 3}]
+CREATE GRAPH mySocialNetwork ::{(City :City {name STRING, state STRING, country STRING})}
+\end{lstlisting}
+
+\begin{lstlisting}[style=gqlStyle, label={lst:wydajnosc-przyklad-p-4}], caption={Przykład GQL 4}]
+INSERT (:Person)-[:LIVES_IN {"since": DATE "1980-07-15"}]->(:City)
+\end{lstlisting}
+
+\begin{lstlisting}[style=gqlStyle, label={lst:wydajnosc-przyklad-p-5}], caption={Przykład GQL 5}]
+INSERT (:Pet {"name": "Winnifred", "type": "Dog"})
+\end{lstlisting}
+
+\begin{lstlisting}[style=gqlStyle, label={lst:wydajnosc-przyklad-p-6}], caption={Przykład GQL 6}]
+MATCH (a {"firstname": "Keith"}), (d {"name": "Winnifred"})
+\end{lstlisting}
+
+\begin{lstlisting}[style=gqlStyle, label={lst:wydajnosc-przyklad-p-7}], caption={Przykład GQL 7}]
+MATCH (p:Person)-[r:IS_FRIENDS_WITH]->(friend:Person)
+WHERE EXISTS (MATCH (p)-[:WORKS_FOR]->(:Company {name: "GQL, Inc."}))
+RETURN p, r, friend
+\end{lstlisting}
+
+\begin{lstlisting}[style=gqlStyle, label={lst:wydajnosc-przyklad-p-8}], caption={Przykład GQL 8}]
+SESSION SET VALUE $a=10
+SESSION SET VALUE $b=12
+RETURN mod($a, $b)
+\end{lstlisting}
+
+\begin{lstlisting}[style=gqlStyle, label={lst:wydajnosc-przyklad-p-9}], caption={Przykład GQL 9}]
+MATCH (p:Person)-[r:IS_FRIENDS_WITH]->(friend:Person)
+WHERE EXISTS (MATCH (p)-[:WORKS_FOR]->(:Company {name: "GQL, Inc."}))
+RETURN p, r, friend
+\end{lstlisting}
+
+\begin{lstlisting}[style=gqlStyle, label={lst:wydajnosc-przyklad-p-10}], caption={Przykład GQL 10}]
+MATCH (p:Person)-[r1:IS_FRIENDS_WITH]->(friend:Person), (p:Person)-[r2:LIVES_IN]->(c:City)
+WHERE EXISTS (MATCH (p)-[:WORKS_FOR]->(:Company {name: "GQL, Inc."}))
+RETURN p, c, r1, r2
+\end{lstlisting}
+
+\begin{lstlisting}[style=gqlStyle, label={lst:wydajnosc-przyklad-p-11}], caption={Przykład GQL 11}]
+CREATE GRAPH mySocialNetwork OPEN TYPE
+INSERT (:Person {"firstname": "A", "lastname": "B", "joined": DATE "2022-08-23"})
+-[:LIVES_IN {"since": DATE "1980-07-15"}]->
+(:City {"name":"H", "state":"H", "country": "H"})
+INSERT (:Pet {"name": "C", "type": "Dog"})
+\end{lstlisting}
+
+\begin{lstlisting}[style=gqlStyle, label={lst:wydajnosc-przyklad-p-12}], caption={Przykład GQL 12}]
+CREATE GRAPH mySocialNetwork OPEN TYPE
+INSERT (:Person {"firstname": "A", "lastname": "B", "joined": DATE "2022-08-23"})
+-[:LIVES_IN {"since": DATE "1980-07-15"}]->
+(:City {"name":"H", "state":"H", "country": "H"})
+INSERT (:Pet {"name": "C", "type": "Dog"})
+MATCH (a {"firstname": "Keith"}), (d {"name": "Winnifred"})
+INSERT (a)-[:HasPet]->(d)
+\end{lstlisting}

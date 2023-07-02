@@ -1,42 +1,46 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { environment } from '$root/_helpers_/environment';
-import { clearEditor, getClipboardValue } from '$root/_helpers_/commons';
+import { clearEditor } from '$root/_helpers_/commons';
+import {
+  getClipboardValue,
+  overrideClipboardPermissions,
+  waitForClipboardValueToChange,
+} from '$root/_helpers_/clipboard';
 
 const feature = loadFeature('./src/e2e/features/share-code.feature');
 
 const codeExample =
   'CREATE GRAPH TYPE IF NOT EXISTS example_graph_type\n' +
-  '   AS {\n' +
-  '        (Person :Person { "lastname" STRING, "firstname" STRING, "joined" DATE}),\n' +
-  '        (City :City { "name" STRING, "state" STRING, "country" STRING}),\n' +
-  '        (Pet :Pet { "name" STRING, "type" STRING}),\n' +
-  '        (Person)-[LivesIn :LIVES_IN { "since" DATE }]->(City),\n' +
-  '        (Person)-[Knows :KNOWS]->(Person)' +
-  '   }';
+  'AS {\n' +
+  '(Person :Person { "lastname" STRING, "firstname" STRING, "joined" DATE}),\n' +
+  '(City :City { "name" STRING, "state" STRING, "country" STRING}),\n' +
+  '(Pet :Pet { "name" STRING, "type" STRING}),\n' +
+  '(Person)-[LivesIn :LIVES_IN { "since" DATE }]->(City),\n' +
+  '(Person)-[Knows :KNOWS]->(Person)\n' +
+  '}';
 
 const codeExampleModified =
   'CREATE GRAPH TYPE IF NOT EXISTS example_graph_type\n' +
-  '   AS {\n' +
-  '        (Person :Person { "lastname" STRING, "firstname" STRING, "joined" DATE}),\n' +
-  '        (City :City { "name" STRING, "state" STRING, "country" STRING}),\n' +
-  '        (Pet :Pet { "name" STRING, "type" STRING}),\n' +
-  '        (Person)-[LivesIn :IN { "since" DATE }]->(City),\n' +
-  '        (Person)-[Knows :KNOWS]->(Person)' +
-  '   }';
+  'AS {\n' +
+  '(Person :Person { "lastname" STRING, "firstname" STRING, "joined" DATE}),\n' +
+  '(City :City { "name" STRING, "state" STRING, "country" STRING}),\n' +
+  '(Pet :Pet { "name" STRING, "type" STRING}),\n' +
+  '(Person)-[LivesIn :IN { "since" DATE }]->(City),\n' +
+  '(Person)-[Knows :KNOWS]->(Person)\n' +
+  '}';
 
 defineFeature(feature, (test) => {
   let browser: Browser;
   let page: Page;
 
-  beforeAll(async () => {
-    browser = await puppeteer.launch({
-      headless: false,
-    });
+  beforeEach(async () => {
+    browser = await puppeteer.launch({ headless: 'new' });
     page = await browser.newPage();
+    await overrideClipboardPermissions(browser);
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await browser.close();
   });
 
@@ -61,6 +65,7 @@ defineFeature(feature, (test) => {
 
     and('the user clicks share button', async () => {
       await page.click('[data-testid="ti-share-button"]');
+      await waitForClipboardValueToChange(browser, page);
     });
 
     then('the link should be copied to clipboard', async () => {
@@ -84,6 +89,7 @@ defineFeature(feature, (test) => {
 
     and('the user clicks share button', async () => {
       await page.click('[data-testid="ti-share-button"]');
+      await waitForClipboardValueToChange(browser, page);
     });
 
     and('the user moves to link in clipboard', async () => {
@@ -112,6 +118,7 @@ defineFeature(feature, (test) => {
 
     and('the user clicks share button', async () => {
       await page.click('[data-testid="ti-share-button"]');
+      await waitForClipboardValueToChange(browser, page);
     });
 
     and('the user moves to link in clipboard', async () => {
@@ -125,11 +132,13 @@ defineFeature(feature, (test) => {
     });
 
     and('the user changes the editor value', async () => {
+      await clearEditor(page);
       await page.type('#code-textarea--input', codeExampleModified);
     });
 
     and('the user clicks share button', async () => {
       await page.click('[data-testid="ti-share-button"]');
+      await waitForClipboardValueToChange(browser, page);
     });
 
     and('the user moves to link in clipboard', async () => {

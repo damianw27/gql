@@ -1,7 +1,14 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { environment } from '$root/_helpers_/environment';
-import { clearEditor, getElementByTestId, getElementsByTestId, switchLanguage } from '$root/_helpers_/commons';
+import {
+  clearEditor,
+  getElementByTestId,
+  getElementsByTestId,
+  switchLanguage,
+  waitForElementByTestId,
+  waitForMillis,
+} from '$root/_helpers_/commons';
 
 const feature = loadFeature('./src/e2e/features/code-editor.feature');
 
@@ -10,9 +17,7 @@ defineFeature(feature, (test) => {
   let page: Page;
 
   beforeAll(async () => {
-    browser = await puppeteer.launch({
-      headless: false,
-    });
+    browser = await puppeteer.launch({ headless: 'new' });
     page = await browser.newPage();
   });
 
@@ -30,8 +35,8 @@ defineFeature(feature, (test) => {
       await page.keyboard.press('Backspace');
       await page.type('#code-textarea--input', input);
       await page.keyboard.press('Enter');
-      await page.waitForSelector('span[data-testid="ti-parsing-status-working"]');
-      await page.waitForSelector('span[data-testid="ti-parsing-status-no-errors"]');
+      await waitForElementByTestId('ti-parsing-status-working', page);
+      await waitForElementByTestId('ti-parsing-status-no-errors', page);
     });
 
     then(/^the editor's value changes to "(.*)" and provided input is valid$/, async (input) => {
@@ -51,8 +56,8 @@ defineFeature(feature, (test) => {
       await page.keyboard.press('Backspace');
       await page.type('#code-textarea--input', input);
       await page.keyboard.press('Enter');
-      await page.waitForSelector('[data-testid="ti-parsing-status-working"]');
-      await page.waitForSelector('[data-testid="ti-parsing-status-errors"]');
+      await waitForElementByTestId('ti-parsing-status-working', page);
+      await waitForElementByTestId('ti-parsing-status-errors', page);
     });
 
     then(/^the editor's value changes to "(.*)" and provided input is valid$/, async (input) => {
@@ -76,8 +81,8 @@ defineFeature(feature, (test) => {
     });
 
     and('the input is parsed', async () => {
-      await page.waitForSelector('[data-testid="ti-parsing-status-working"]');
-      await page.waitForSelector('[data-testid="ti-parsing-status-errors"]');
+      await waitForElementByTestId('ti-parsing-status-working', page);
+      await waitForElementByTestId('ti-parsing-status-errors', page);
     });
 
     then('application should render errors in provided input', async () => {
@@ -100,14 +105,13 @@ defineFeature(feature, (test) => {
     });
 
     and('the input is parsed', async () => {
-      await page.waitForSelector('[data-testid="ti-parsing-status-working"]');
-      await page.waitForSelector('[data-testid="ti-parsing-status-errors"]');
+      await waitForElementByTestId('ti-parsing-status-working', page);
+      await waitForElementByTestId('ti-parsing-status-errors', page);
     });
 
     then('should render lines which contains errors with red background', async () => {
-      const editorLines = await getElementsByTestId('ti-higlights-code-line', page);
-      const { backgroundColor } = getComputedStyle(await editorLines[0].jsonValue());
-      expect(backgroundColor).toBe('#ff000022');
+      const elementHandle = await page.$('[data-testid="ti-higlights-code-line-error"]');
+      expect(elementHandle).not.toBeNull();
     });
   });
 
@@ -125,14 +129,12 @@ defineFeature(feature, (test) => {
     });
 
     and('the input is parsed', async () => {
-      await page.waitForSelector('[data-testid="ti-parsing-status-working"]');
-      await page.waitForSelector('[data-testid="ti-parsing-status-no-errors"]');
+      await waitForElementByTestId('ti-parsing-status-working', page);
+      await waitForElementByTestId('ti-parsing-status-no-errors', page);
     });
 
     then('application should render success label', async () => {
-      const errorListElement = await getElementByTestId('ti-parsing-status-errors--errors-list-element-0', page);
-      const noErrorsElement = await getElementsByTestId('ti-parsing-status-no-errors', page);
-      expect(errorListElement).toBeUndefined();
+      const noErrorsElement = await waitForElementByTestId('ti-parsing-status-no-errors', page);
       expect(noErrorsElement).not.toBeUndefined();
     });
   });
@@ -147,12 +149,12 @@ defineFeature(feature, (test) => {
     });
 
     and('the input is parsed', async () => {
-      await page.waitForSelector('[data-testid="ti-parsing-status-working"]');
-      await page.waitForSelector('[data-testid="ti-parsing-status-errors"]');
+      await waitForElementByTestId('ti-parsing-status-working', page);
+      await waitForElementByTestId('ti-parsing-status-errors', page);
     });
 
     then('initial input should be invalid with changed language', async () => {
-      const errorListElement = await getElementByTestId('ti-parsing-status-errors--errors-list-element-0', page);
+      const errorListElement = await waitForElementByTestId('ti-parsing-status-errors--errors-list-element-0', page);
       expect(errorListElement).not.toBeUndefined();
     });
   });

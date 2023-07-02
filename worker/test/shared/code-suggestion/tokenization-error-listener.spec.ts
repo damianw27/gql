@@ -1,5 +1,5 @@
-import { TokenizationErrorListener } from '$shared/code-suggestion/tokenization-error-listener';
 import { Recognizer } from '@gql-grammar/antlr4';
+import { TokenizationErrorListener } from '$shared/code-suggestion/tokenization-error-listener';
 
 describe('TokenizationErrorListener', () => {
   describe('syntaxError', () => {
@@ -9,7 +9,7 @@ describe('TokenizationErrorListener', () => {
       const listener = new TokenizationErrorListener(inputStr);
 
       const recognizerMock = {} as unknown as Recognizer<number>;
-      const offendingSymbol = 123; // Replace with an appropriate value
+      const offendingSymbol = 123;
 
       listener.syntaxError(recognizerMock, offendingSymbol, 1, column);
 

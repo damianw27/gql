@@ -4,10 +4,11 @@ import { CodeEditorViewType } from '$components/code-editor/types/code-editor-vi
 
 interface ViewSelectProps {
   readonly value: CodeEditorViewType;
+  readonly isParseTreeViewDisabled: boolean;
   readonly onViewSelectChange: (viewType: CodeEditorViewType) => void;
 }
 
-export const ViewSelect = ({ value, onViewSelectChange }: ViewSelectProps): ReactElement => {
+export const ViewSelect = ({ value, isParseTreeViewDisabled, onViewSelectChange }: ViewSelectProps): ReactElement => {
   const getClassName = useCallback(
     (viewType: CodeEditorViewType) =>
       value === viewType ? `${styles.selectOption} ${styles.selectedOption}` : styles.selectOption,
@@ -27,6 +28,7 @@ export const ViewSelect = ({ value, onViewSelectChange }: ViewSelectProps): Reac
         onClick={() => onViewSelectChange(CodeEditorViewType.ParseTree)}
         className={getClassName(CodeEditorViewType.ParseTree)}
         data-testid="ti-view-select--wrapper--parse-tree"
+        disabled={isParseTreeViewDisabled}
       >
         Parse Tree
       </button>

@@ -2,8 +2,8 @@
   "name": "@gql-grammar/antlr4",
   "version": "4.12.0",
   "type": "module",
-  "browser": "dist/index.js",
-  "main": "dist/index.js",
+  "browser": "dist/index.web.mjs",
+  "main": "dist/index.node.mjs",
   "types": "types/index.d.ts",
   "license": "BSD-3-Clause",
   "scripts": {
@@ -26,5 +26,21 @@
     "typescript": "^5.0.4",
     "webpack": "^5.82.0",
     "webpack-cli": "^5.0.2"
+  },
+  "exports": {
+    ".": {
+      "node": {
+        "types": "types/index.d.ts",
+        "import": "dist/index.node.mjs",
+        "require": "dist/index.node.cjs",
+        "default": "dist/index.node.mjs"
+      },
+      "browser": {
+        "types": "types/index.d.ts",
+        "import": "dist/index.web.mjs",
+        "require": "dist/index.web.cjs",
+        "default": "dist/index.web.mjs"
+      }
+    }
   }
 }

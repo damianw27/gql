@@ -26,7 +26,7 @@ describe('ExamplesList', () => {
   });
 
   it('renders the ExamplesList component with a search input and example list', () => {
-    render(<ExamplesList grammar={mockGrammar} examples={mockExamples} onExampleClick={jest.fn()} />);
+    render(<ExamplesList isLoading={false} grammar={mockGrammar} examples={mockExamples} onExampleClick={jest.fn()} />);
 
     const examplesList = screen.getByRole('list');
     expect(examplesList).toBeInTheDocument();
@@ -39,7 +39,7 @@ describe('ExamplesList', () => {
   });
 
   it('filters the example list based on search input', async () => {
-    render(<ExamplesList grammar={mockGrammar} examples={mockExamples} onExampleClick={jest.fn()} />);
+    render(<ExamplesList isLoading={false} grammar={mockGrammar} examples={mockExamples} onExampleClick={jest.fn()} />);
 
     const searchInput = screen.getByPlaceholderText('Search...');
 
@@ -68,7 +68,14 @@ describe('ExamplesList', () => {
   it('calls the onExampleClick callback when an example is clicked', () => {
     const mockOnExampleClick = jest.fn();
 
-    render(<ExamplesList grammar={mockGrammar} examples={mockExamples} onExampleClick={mockOnExampleClick} />);
+    render(
+      <ExamplesList
+        isLoading={false}
+        grammar={mockGrammar}
+        examples={mockExamples}
+        onExampleClick={mockOnExampleClick}
+      />,
+    );
 
     const exampleElement = screen.getByText('Example Title');
 

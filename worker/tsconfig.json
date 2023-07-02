@@ -23,12 +23,16 @@
       "$test/*": [
         "test/*"
       ],
+      "$test-helpers/*": [
+        "test/__helpers__/*"
+      ],
       "$types/*": [
         "src/types/*"
       ]
     }
   },
   "include": [
-    "./src/**/*"
+    "./src/**/*",
+    "./test/**/*"
   ]
 }

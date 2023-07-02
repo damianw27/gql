@@ -1,97 +1,50 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Edge, Network, Node } from 'vis-network';
-import { isTreeRuleNode, isTreeTerminalNode, ParseTree, TreeNode } from '@gql-grammar/worker';
+import React, { useEffect, useRef } from 'react';
+import { Network } from 'vis-network';
+import { ParseTree } from '@gql-grammar/worker';
 import { parseTreeViewOptions } from '$components/parse-tree/parse-tree-view-options';
 import css from '$components/parse-tree/parse-tree.module.css';
+import { SpinnerIcon } from '$icons/spinner-icon/spinner-icon';
+import { useParseTreeConverter } from '$hooks/parse-tree-converter/parse-tree-converter';
 
 export interface ParseTreeViewProps {
+  readonly isParsing: boolean;
   readonly parseTree: ParseTree;
 }
 
-const VALID_LEAF_COLOR = '#6F6';
-const INVALID_LEAF_COLOR = '#F65';
-
-const loadDataFromParseTree = (nodes: Node[], edges: Edge[], treeNodes: TreeNode[]): void => {
-  const stack: { treeNodes: TreeNode[]; level: number; parent?: Node }[] = [];
-  stack.push({ treeNodes, level: 0 });
-
-  while (stack.length > 0) {
-    const { treeNodes, level, parent } = stack.pop()!;
-
-    for (const treeNode of treeNodes) {
-      const id = nodes.length;
-
-      if (isTreeTerminalNode(treeNode)) {
-        if (parent === undefined) {
-          continue;
-        }
-
-        const label = `${treeNode.text}`;
-        const color = VALID_LEAF_COLOR;
-        const node: Node = { id, label, level, color };
-        nodes.push(node);
-      }
-
-      if (isTreeRuleNode(treeNode)) {
-        const label = treeNode.name;
-        const color = treeNode.children.length === 0 ? INVALID_LEAF_COLOR : undefined;
-        const node: Node = { id, label, level, color };
-        nodes.push(node);
-
-        stack.push({
-          treeNodes: treeNode.children,
-          level: level + 1,
-          parent: node,
-        });
-      }
-
-      if (parent !== undefined) {
-        const edge: Edge = { from: parent.id, to: id };
-        edges.push(edge);
-      }
-    }
-  }
-};
-
-export const ParseTreeView = ({ parseTree }: ParseTreeViewProps) => {
+export const ParseTreeView = ({ parseTree, isParsing }: ParseTreeViewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<Network | null>(null);
-  const [isRendering, setIsRendering] = useState<boolean>(false);
+  const { isConverting, convertResult } = useParseTreeConverter(parseTree);
 
   useEffect(() => {
     if (containerRef.current === null) {
       return;
     }
 
+    networkRef.current?.destroy();
     const container = containerRef.current;
-    const nodes: Node[] = [];
-    const edges: Edge[] = [];
-
-    setIsRendering(true);
-
-    loadDataFromParseTree(nodes, edges, parseTree);
+    const { nodes, edges } = convertResult;
     networkRef.current = new Network(container, { nodes, edges }, parseTreeViewOptions);
     networkRef.current?.fit();
     networkRef.current?.redraw();
-    networkRef.current?.on('initRedraw', () => setIsRendering(false));
 
     return () => {
-      if (networkRef.current === null) {
-        return;
-      }
-
-      networkRef.current.destroy();
+      networkRef.current?.destroy();
       networkRef.current = null;
     };
-  }, [parseTree]);
+  }, [isParsing, convertResult]);
 
   return (
     <div className={css.parseTree}>
-      {isRendering ? (
-        'Rendering...'
-      ) : (
-        <div ref={containerRef} className={css.parseTreeView} data-testid="ti-parse-tree--container" />
-      )}
+      <div className={css.parseTreeLoadingWrapper} style={{ display: isParsing || isConverting ? 'inherit' : 'none' }}>
+        <SpinnerIcon testId="ti-loading-parse-tree" width="64" height="64" />
+      </div>
+      <div
+        ref={containerRef}
+        className={css.parseTreeView}
+        data-testid="ti-parse-tree--container"
+        style={{ display: isParsing || isConverting ? 'none' : 'inherit' }}
+      />
     </div>
   );
 };

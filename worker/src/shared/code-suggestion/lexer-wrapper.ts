@@ -5,6 +5,7 @@ import { LexerFactory } from '$shared/code-suggestion/types/lexer-factory';
 
 export class LexerWrapper<L extends Lexer> {
   private readonly lexerFactory: LexerFactory<L>;
+
   private cachedLexer?: L;
 
   public constructor(lexerFactory: LexerFactory<L>) {

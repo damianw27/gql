@@ -1,11 +1,15 @@
-import { ATNState, AtomTransition, IntervalSet, Lexer, SetTransition, Transition } from '@gql-grammar/antlr4';
+import { ATNState, AtomTransition, IntervalSet, Lexer, Transition } from '@gql-grammar/antlr4';
 import { LexerWrapper } from '$shared/code-suggestion/lexer-wrapper';
 
 export class TokenSuggester<L extends Lexer> {
   public origPartialToken: string;
+
   public lexerWrapper: LexerWrapper<L>;
+
   public suggestions: string[];
+
   public statesCache: number[];
+
   public casePreference: string | null;
 
   public constructor(origPartialToken: string, lexerWrapper: LexerWrapper<L>, casePreference: string | null = null) {
@@ -62,13 +66,13 @@ export class TokenSuggester<L extends Lexer> {
   private suggestViaLexerTransition = (tokenSoFar: string, remainingText: string, transition: Transition): void => {
     if (transition.isEpsilon) {
       this.findSuggestionForState(tokenSoFar, transition.target, remainingText);
-    } else if (transition instanceof AtomTransition) {
-      const newTokenChar = this.getAddedTextFor(transition);
+    } else if (transition.serializationType === 5) {
+      const newTokenChar = this.getAddedTextFor(transition as AtomTransition);
 
       if (remainingText === '' || remainingText.startsWith(newTokenChar)) {
         this.suggestViaNonEpsilonLexerTransition(tokenSoFar, remainingText, newTokenChar, transition.target);
       }
-    } else if (transition instanceof SetTransition) {
+    } else if (transition.serializationType === 7) {
       const allLabelChars = this.calcAllLabelChars(transition.label);
 
       transition.label.intervals.forEach((interval) => {

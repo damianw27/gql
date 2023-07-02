@@ -1,5 +1,5 @@
-import { SuggestionsBuilder } from '$shared/code-suggestion/suggestions-builder';
 import { Lexer, Parser } from '@gql-grammar/antlr4';
+import { SuggestionsBuilder } from '$shared/code-suggestion/suggestions-builder';
 
 export const mockSuggestionsBuilder = jest.fn().mockImplementation(
   () =>

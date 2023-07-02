@@ -1,26 +1,26 @@
 import puppeteer from 'puppeteer';
 import { environment } from '$root/_helpers_/environment';
 import { ResultsGatherer } from '$performance/results-gatherer';
-import { clearEditor } from '$root/_helpers_/clear-editor';
-import { generateResults } from '$performance/results-generator';
+import { generateResultsInTex } from '$performance/results-generator';
+import { clearEditor } from '$root/_helpers_/commons';
+import { generateExamplesInTex } from '$performance/examples-generator';
 
 const run = async (): Promise<void> => {
-  const browser = await puppeteer.launch({
-    headless: false,
-  });
-
-  const page = await browser.newPage();
-  await page.goto(environment.websiteUrl);
   const resultsGatherer = new ResultsGatherer();
-  const testIds = [resultsGatherer.getTestsIds()[0]];
+  const testIds = resultsGatherer.getTestsIds();
 
   // eslint-disable-next-line no-restricted-syntax
   for (const testId of testIds) {
+    const browser = await puppeteer.launch({ headless: 'new' });
+    const page = await browser.newPage();
+    await page.goto(environment.websiteUrl);
     const test = resultsGatherer.selectTestById(testId);
+    await page.waitForSelector('span[data-testid="ti-parsing-status-working"]');
+    await page.waitForSelector('span[data-testid="ti-parsing-status-no-errors"]');
 
     while (resultsGatherer.isCurrentTestNotCompleted()) {
       await clearEditor(page);
-      await page.type('#code-textarea--input', test.code, { delay: 0 });
+      await page.type('#code-textarea--input', test.code);
       await page.keyboard.press('Enter');
 
       resultsGatherer.startCurrentTest();
@@ -30,11 +30,12 @@ const run = async (): Promise<void> => {
 
       await clearEditor(page);
     }
+
+    await browser.close();
   }
 
-  await browser.close();
-  const results = resultsGatherer.getResults();
-  generateResults(results);
+  generateExamplesInTex(resultsGatherer.getTests());
+  generateResultsInTex(resultsGatherer.getResults());
 };
 
 run().catch(() => new Error('Test execution failed'));

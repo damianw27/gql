@@ -1,6 +1,7 @@
 import { TestsDictionary } from '$performance/types/tests-dictionary';
 import { examples } from '$performance/examples';
 import { TestExample } from '$performance/types/test-example';
+import { ResultData } from '$performance/types/result-data';
 
 const loadTestExamples = (): TestsDictionary =>
   examples.reduce(
@@ -12,7 +13,7 @@ const loadTestExamples = (): TestsDictionary =>
   );
 
 export class ResultsGatherer {
-  private readonly samplesCount = 10;
+  private readonly samplesCount = 200;
 
   private readonly debounceAwaitTime = 800;
 
@@ -20,11 +21,15 @@ export class ResultsGatherer {
 
   private readonly samples: Record<string, number[]>;
 
-  private readonly results: Record<string, number>;
+  private readonly results: Record<string, ResultData>;
 
   private currentTestId?: string;
 
   private currentTestStart?: number;
+
+  private minTestTime: number = Number.MAX_VALUE;
+
+  private maxTestTime: number = Number.MIN_VALUE;
 
   public constructor() {
     this.tests = loadTestExamples();
@@ -36,6 +41,8 @@ export class ResultsGatherer {
 
   public selectTestById = (id: string): TestExample => {
     this.currentTestId = id;
+    this.minTestTime = Number.MAX_VALUE;
+    this.maxTestTime = Number.MIN_VALUE;
     return this.tests[id];
   };
 
@@ -57,18 +64,38 @@ export class ResultsGatherer {
     }
 
     const testTime = performance.now() - (this.currentTestStart ?? 0) - this.debounceAwaitTime;
+
+    if (this.minTestTime > testTime) {
+      this.minTestTime = testTime;
+    }
+
+    if (this.maxTestTime < testTime) {
+      this.maxTestTime = testTime;
+    }
+
     this.samples[this.currentTestId].push(testTime);
+    console.log(
+      `T: ${this.tests[this.currentTestId].name} ${this.samples[this.currentTestId].length}/${this.samplesCount}`,
+    );
 
     if (this.isCurrentTestNotCompleted()) {
       return;
     }
 
     const samplesSum = [...this.samples[this.currentTestId]].reduce((acc, next) => acc + next, 0);
-    this.results[this.currentTestId] = samplesSum / this.samplesCount;
+
+    this.results[this.currentTestId] = {
+      samples: this.samples[this.currentTestId],
+      min: this.minTestTime,
+      max: this.maxTestTime,
+      avg: samplesSum / this.samplesCount,
+    };
   };
 
   public isCurrentTestNotCompleted = (): boolean =>
     (this.samples[this.currentTestId ?? '']?.length ?? 0) < this.samplesCount;
 
-  public getResults = (): Record<string, number> => this.results;
+  public getTests = (): TestsDictionary => this.tests;
+
+  public getResults = (): Record<string, ResultData> => this.results;
 }

@@ -1,7 +1,7 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { environment } from '$root/_helpers_/environment';
-import { clearEditor } from '$root/_helpers_/commons';
+import { clearEditor, getElementByTestId, waitForElementByTestId, waitForMillis } from '$root/_helpers_/commons';
 
 const feature = loadFeature('./src/e2e/features/autocomplete.feature');
 
@@ -9,14 +9,12 @@ defineFeature(feature, (test) => {
   let browser: Browser;
   let page: Page;
 
-  beforeAll(async () => {
-    browser = await puppeteer.launch({
-      headless: false,
-    });
+  beforeEach(async () => {
+    browser = await puppeteer.launch({ headless: 'new' });
     page = await browser.newPage();
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await browser.close();
   });
 
@@ -31,14 +29,16 @@ defineFeature(feature, (test) => {
 
     and('the user types "ta" in the editor', async () => {
       await page.type('#code-textarea--input', 'ta');
-      await page.waitForSelector('ul[data-testid="ti-autocomplete-list"]');
+      await waitForMillis(800);
     });
 
     and('the user press the arrow up key', async () => {
-      await page.keyboard.press('ArrowDown');
+      await page.focus('[data-testid="ti-autocomplete-list"]');
+      await page.keyboard.press('ArrowUp');
     });
 
     and('the user press the enter key', async () => {
+      await page.focus('[data-testid="ti-autocomplete-list"]');
       await page.keyboard.press('Enter');
     });
 
@@ -60,14 +60,16 @@ defineFeature(feature, (test) => {
 
     and('the user types "ta" in the editor', async () => {
       await page.type('#code-textarea--input', 'ta');
-      await page.waitForSelector('ul[data-testid="ti-autocomplete-list"]');
+      await waitForMillis(800);
     });
 
     and('the user press the arrow down key', async () => {
+      await page.focus('[data-testid="ti-autocomplete-list"]');
       await page.keyboard.press('ArrowDown');
     });
 
     and('the user press the enter key', async () => {
+      await page.focus('[data-testid="ti-autocomplete-list"]');
       await page.keyboard.press('Enter');
     });
 
@@ -89,16 +91,17 @@ defineFeature(feature, (test) => {
 
     and('the user types "mat" in the editor', async () => {
       await page.type('#code-textarea--input', 'mat');
-      await page.waitForSelector('ul[data-testid="ti-autocomplete-list"]');
+      await waitForMillis(800);
     });
 
     and('the user press escape key', async () => {
+      await page.focus('[data-testid="ti-autocomplete-list"]');
       await page.keyboard.press('Escape');
     });
 
     then('the autocomplete dialog should be closed', async () => {
-      const autocompleteList = await page.waitForSelector('ul[data-testid="ti-autocomplete-list"]');
-      expect(autocompleteList).toBeNull();
+      const autocompleteList = await page.$('[data-testid="ti-autocomplete-list"]');
+      expect(await autocompleteList?.isVisible()).toBeFalsy();
     });
   });
 
@@ -113,16 +116,13 @@ defineFeature(feature, (test) => {
 
     and('the user types "mat" in the editor', async () => {
       await page.type('#code-textarea--input', 'mat');
-      await page.waitForSelector('ul[data-testid="ti-autocomplete-list"]');
+      await waitForMillis(800);
     });
 
     and('the user press escape key to close dialog', async () => {
       await page.keyboard.press('Escape');
-      const autocompleteList = await page.waitForSelector('ul[data-testid="ti-autocomplete-list"]');
-
-      if (autocompleteList === null) {
-        throw new Error('illegal state, dialog should be hidden');
-      }
+      const autocompleteList = await waitForElementByTestId('ti-autocomplete-list', page);
+      expect(autocompleteList?.isHidden()).toBeTruthy();
     });
 
     and('the user press ctrl + enter keys', async () => {
@@ -132,8 +132,8 @@ defineFeature(feature, (test) => {
     });
 
     then('the autocomplete dialog should be reopened', async () => {
-      const autocompleteList = await page.waitForSelector('ul[data-testid="ti-autocomplete-list"]');
-      expect(autocompleteList).not.toBeNull();
+      const autocompleteList = await getElementByTestId('ti-autocomplete-list', page);
+      expect(await autocompleteList?.isHidden()).toBeFalsy();
     });
   });
 
@@ -148,11 +148,12 @@ defineFeature(feature, (test) => {
 
     and('the user types "dqewqsaczx" in the editor', async () => {
       await page.type('#code-textarea--input', 'dqewqsaczx');
+      await waitForMillis(800);
     });
 
     then('the autocomplete dialog should not be opened', async () => {
-      const autocompleteList = await page.waitForSelector('ul[data-testid="ti-autocomplete-list"]');
-      expect(autocompleteList).toBeNull();
+      const autocompleteList = await waitForElementByTestId('ti-autocomplete-list', page);
+      expect(await autocompleteList?.isHidden()).toBeTruthy();
     });
   });
 
@@ -167,12 +168,14 @@ defineFeature(feature, (test) => {
 
     and('the user types "sel" in the editor', async () => {
       await page.type('#code-textarea--input', 'sel');
-      await page.waitForSelector('ul[data-testid="ti-autocomplete-list"]');
+      await waitForMillis(800);
     });
 
     then('the user should see suggestions that contains "sel"', async () => {
-      const autocompleteList = await page.waitForSelector('ul[data-testid="ti-autocomplete-list"] li');
-      expect(autocompleteList).not.toBeNull();
+      const item0 = await waitForElementByTestId('ti-autocomplete-option-0', page);
+      const item1 = await waitForElementByTestId('ti-autocomplete-option-1', page);
+      expect(item0).not.toBeUndefined();
+      expect(item1).not.toBeUndefined();
     });
   });
 });

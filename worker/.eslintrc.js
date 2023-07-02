@@ -2,22 +2,42 @@
 const prettierConfig = require('./.prettierrc.js');
 
 module.exports = {
-  env: {
-    es2021: true,
-    node: true,
-    jest: true,
-  },
-  extends: ['alloy', 'alloy/typescript', 'prettier'],
-  plugins: ['prettier', 'jest'],
-  overrides: [],
-  parser: '@typescript-eslint/parser',
-  parserOptions: {
-    ecmaVersion: 12,
-    sourceType: 'module',
-  },
-  rules: {
-    'prettier/prettier': ['error', prettierConfig],
-    'max-nested-callbacks': 'off',
-  },
+  root: true,
+  overrides: [
+    {
+      files: '*.ts',
+      env: {
+        es2021: true,
+        node: true,
+        jest: true,
+      },
+      extends: ['airbnb-base', 'airbnb-typescript/base', 'prettier'],
+      plugins: ['prettier'],
+      parser: '@typescript-eslint/parser',
+      parserOptions: {
+        ecmaVersion: 12,
+        sourceType: 'module',
+        project: './tsconfig.json'
+      },
+      rules: {
+        'prettier/prettier': ['error', prettierConfig],
+        'max-nested-callbacks': 'off',
+        'import/extensions': ['error', { ts: 'never' }],
+        'import/prefer-default-export': 'off',
+        'no-underscore-dangle': 'off',
+      },
+    },
+    {
+      files: '*.js',
+      env: {
+        node: true,
+      },
+      extends: ['airbnb-base', 'prettier'],
+      plugins: ['prettier'],
+      rules: {
+        'prettier/prettier': ['error', prettierConfig],
+      },
+    },
+  ],
   ignorePatterns: ['src/generated/**/*', 'scripts/**/*'],
 };

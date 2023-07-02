@@ -28,10 +28,7 @@ export class ParseTreeExtractor<P extends Parser> {
         children: [],
       };
 
-      for (const item of parserRuleContext.children ?? []) {
-        this.performExtraction(item, ruleNode.children);
-      }
-
+      (parserRuleContext.children ?? []).forEach((item) => this.performExtraction(item, ruleNode.children));
       parentChildren.push(ruleNode);
     }
   }

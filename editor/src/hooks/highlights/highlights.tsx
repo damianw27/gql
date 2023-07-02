@@ -45,7 +45,7 @@ export const useHighlights = ({ specification, parseResult }: UseHighlightsProps
       <tr
         key={`code-line-${index}`}
         className={hasError ? css.codeLineError : undefined}
-        data-testid="ti-higlights-code-line"
+        data-testid={hasError ? 'ti-higlights-code-line-error' : 'ti-higlights-code-line'}
       >
         <td className={css.lineNumberCell} data-testid="ti-higlights-code-line--number-cell">
           {index + 1}
