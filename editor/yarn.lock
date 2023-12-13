@@ -1015,20 +1015,19 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.39.0.tgz#58b536bcc843f4cd1e02a7e6171da5c040f4d44b"
   integrity sha512-kf9RB0Fg7NZfap83B3QOqOGg9QmD9yBudqQXzzOtn3i4y7ZUXe5ONeW34Gwi+TxhH4mvj72R1Zc300KUMa9Bng==
 
-"@gql-grammar/core@^1.0.2":
-  version "1.0.10"
-  resolved "https://registry.yarnpkg.com/@gql-grammar/core/-/core-1.0.10.tgz#553d1d58749f6740e464b6a321a55f9bb4b5f5fa"
-  integrity sha512-nisIrz0smxagdBgkRjRFZlQhkIYQ2zjuQeAnTOIhWG9AuH222GHn3tfs/emwYL1MFJqcTxxPomkhxH0MRbihFA==
-  dependencies:
-    antlr4 "^4.12.0"
+"@gql-grammar/antlr4@file:../antlr":
+  version "4.12.0"
 
-"@gql-grammar/worker@^1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@gql-grammar/worker/-/worker-1.0.4.tgz#62771ad24ad8eb787e24ab02037a04d1fc296bbe"
-  integrity sha512-uyiyGDwqShLrhwxnlV+wJ3M/8TXRwxaYvGZNAw6ldXzSK/xoFt7CTVJF0IYZSNT/DCknQOYVZ7qDgZIqiErleQ==
+"@gql-grammar/core@file:../grammar":
+  version "1.0.10"
   dependencies:
-    "@gql-grammar/core" "^1.0.2"
-    antlr4 "^4.12.0"
+    "@gql-grammar/antlr4" "file:C:/Users/marmo/AppData/Local/Yarn/Cache/v6/npm-@gql-grammar-core-1.0.10-fb06a61c-de11-46d7-8658-1de6867b835a-1702489757869/node_modules/@gql-grammar/antlr"
+
+"@gql-grammar/worker@file:../worker":
+  version "1.0.4"
+  dependencies:
+    "@gql-grammar/antlr4" "file:C:/Users/marmo/AppData/Local/Yarn/Cache/v6/npm-@gql-grammar-worker-1.0.4-e5bdbe05-451c-4268-b6c6-2bf0526bf689-1702489757859/node_modules/@gql-grammar/antlr"
+    "@gql-grammar/core" "file:C:/Users/marmo/AppData/Local/Yarn/Cache/v6/npm-@gql-grammar-worker-1.0.4-e5bdbe05-451c-4268-b6c6-2bf0526bf689-1702489757859/node_modules/@gql-grammar/grammar"
 
 "@humanwhocodes/config-array@^0.11.8":
   version "0.11.8"
@@ -2206,11 +2205,6 @@ ansi-styles@^5.0.0:
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-5.2.0.tgz#07449690ad45777d1924ac2abb2fc8895dba836b"
   integrity sha512-Cxwpt2SfTzTtXcfOlzGEee8O+c+MmUgGrNiBcXnuWxuFJHe6a5Hz7qwhwe5OgaSYI0IJvkLqWX1ASG+cJOkEiA==
-
-antlr4@^4.12.0:
-  version "4.12.0"
-  resolved "https://registry.yarnpkg.com/antlr4/-/antlr4-4.12.0.tgz#e2323fbb057c77068a174914b0533398aeaba56a"
-  integrity sha512-23iB5IzXJZRZeK9TigzUyrNc9pSmNqAerJRBcNq1ETrmttMWRgaYZzC561IgEO3ygKsDJTYDTozABXa4b/fTQQ==
 
 anymatch@^3.0.3, anymatch@~3.1.2:
   version "3.1.3"

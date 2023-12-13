@@ -2,19 +2,19 @@ import React, { ReactElement, useEffect, useState } from 'react';
 import { Grammar } from 'prismjs';
 import css from '$components/examples-list/examples-list.module.css';
 import Fuse from 'fuse.js';
-import { GqlExample } from '@gql-grammar/core';
+import { Example } from '@gql-grammar/core';
 import { useDebounce } from '$hooks/debounce/debounce';
 import { ExampleElement } from '$components/examples-list/example-element';
 import { SpinnerIcon } from '$icons/spinner-icon/spinner-icon';
 
 interface ExamplesListProps {
   readonly grammar: Grammar;
-  readonly examples: GqlExample[];
+  readonly examples: Example[];
   readonly isLoading: boolean;
-  readonly onExampleClick: (example: GqlExample) => void;
+  readonly onExampleClick: (example: Example) => void;
 }
 
-type ExamplesFuse = Fuse<GqlExample>;
+type ExamplesFuse = Fuse<Example>;
 
 const fuseOptions = {
   includeScore: false,
@@ -25,10 +25,10 @@ const fuseOptions = {
 export const ExamplesList = (props: ExamplesListProps): ReactElement => {
   const [fuse, setFuse] = useState<ExamplesFuse>(new Fuse([], fuseOptions));
   const [searchPhrase, setSearchPhrase] = useState<string>('');
-  const [examples, setExamples] = useState<GqlExample[]>(props.examples);
+  const [examples, setExamples] = useState<Example[]>(props.examples);
   const debouncedSearchPhrase = useDebounce(searchPhrase, 500);
 
-  const searchForExamples = (pattern: string): GqlExample[] => fuse.search(pattern).map((result) => result.item);
+  const searchForExamples = (pattern: string): Example[] => fuse.search(pattern).map((result) => result.item);
 
   useEffect(() => {
     setFuse(new Fuse(props.examples, fuseOptions));
@@ -36,7 +36,7 @@ export const ExamplesList = (props: ExamplesListProps): ReactElement => {
     setExamples(foundExamples);
   }, [props.examples]);
 
-  const handleExampleClick = (example: GqlExample): void => {
+  const handleExampleClick = (example: Example): void => {
     window.scrollTo(0, 0);
     props.onExampleClick(example);
   };

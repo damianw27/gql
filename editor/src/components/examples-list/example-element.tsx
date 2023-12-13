@@ -1,13 +1,13 @@
 import React, { ReactElement } from 'react';
 import { Grammar } from 'prismjs';
 import css from '$components/examples-list/examples-list.module.css';
-import { GqlExample } from '@gql-grammar/core';
+import { Example } from '@gql-grammar/core';
 import { ExampleCode } from '$components/examples-list/example-code';
 
 interface ExampleElementProps {
-  readonly example: GqlExample;
+  readonly example: Example;
   readonly grammar: Grammar;
-  readonly onClick: (example: GqlExample) => void;
+  readonly onClick: (example: Example) => void;
 }
 
 export const ExampleElement = (props: ExampleElementProps): ReactElement => (

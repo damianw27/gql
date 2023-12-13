@@ -3,10 +3,10 @@ import parse from 'html-react-parser';
 import { Grammar, highlight } from 'prismjs';
 import css from '$components/examples-list/examples-list.module.css';
 import styles from '$hooks/highlights/highlight.module.css';
-import { GqlExample } from '@gql-grammar/core';
+import { Example } from '@gql-grammar/core';
 
 export interface ExampleCodeProps {
-  readonly example: GqlExample;
+  readonly example: Example;
   readonly grammar: Grammar;
 }
 

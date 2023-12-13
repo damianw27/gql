@@ -1,6 +1,6 @@
 // Generated from src/versions/latest/antlr/GqlParser.g4 by ANTLR 4.13.1
 
-import {ParseTreeListener} from "antlr4";
+import {ParseTreeListener} from "@gql-grammar/antlr4";
 
 
 import { GqlProgramContext } from "./GqlParser";
