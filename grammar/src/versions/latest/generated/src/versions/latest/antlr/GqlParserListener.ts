@@ -1,4 +1,4 @@
-// Generated from src/versions/latest/antlr/GqlParser.g4 by ANTLR 4.12.0
+// Generated from src/versions/latest/antlr/GqlParser.g4 by ANTLR 4.13.0
 
 import {ParseTreeListener} from "@gql-grammar/antlr4";
 
@@ -459,6 +459,7 @@ import { ParameterValueSpecContext } from "./GqlParser";
 import { PredefinedParameterContext } from "./GqlParser";
 import { ValueExprContext } from "./GqlParser";
 import { CommonValueExprContext } from "./GqlParser";
+import { CommonValuePropertiesGroupContext } from "./GqlParser";
 import { RefValueExprContext } from "./GqlParser";
 import { GraphRefValueExprContext } from "./GqlParser";
 import { BindingTableRefValueExprContext } from "./GqlParser";
@@ -5240,6 +5241,16 @@ export default class GqlParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitCommonValueExpr?: (ctx: CommonValueExprContext) => void;
+	/**
+	 * Enter a parse tree produced by `GqlParser.commonValuePropertiesGroup`.
+	 * @param ctx the parse tree
+	 */
+	enterCommonValuePropertiesGroup?: (ctx: CommonValuePropertiesGroupContext) => void;
+	/**
+	 * Exit a parse tree produced by `GqlParser.commonValuePropertiesGroup`.
+	 * @param ctx the parse tree
+	 */
+	exitCommonValuePropertiesGroup?: (ctx: CommonValuePropertiesGroupContext) => void;
 	/**
 	 * Enter a parse tree produced by `GqlParser.refValueExpr`.
 	 * @param ctx the parse tree

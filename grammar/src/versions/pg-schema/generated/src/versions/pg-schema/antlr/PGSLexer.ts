@@ -1,4 +1,4 @@
-// Generated from src/versions/pg-schema/antlr/PGSLexer.g4 by ANTLR 4.12.0
+// Generated from src/versions/pg-schema/antlr/PGSLexer.g4 by ANTLR 4.13.0
 // noinspection ES6UnusedImports,JSUnusedGlobalSymbols,JSUnusedLocalSymbols
 import {
 	ATN,
@@ -42,28 +42,37 @@ export default class PGSLexer extends Lexer {
 	public static readonly EOF = Token.EOF;
 
 	public static readonly channelNames: string[] = [ "DEFAULT_TOKEN_CHANNEL", "HIDDEN" ];
-	public static readonly literalNames: string[] = [ null, "'create'", "'node'", 
-                                                   "'edge'", "'open'", "'optional'", 
-                                                   "'type'", "'graph'", 
-                                                   "'strict'", "'loose'", 
-                                                   "'abstract'", "'imports'", 
-                                                   "'('", "')'", "'['", 
-                                                   "']'", "'{'", "'}'", 
-                                                   "','", "':'", "';'", 
-                                                   "'-'", "'>'", "'|'", 
-                                                   "'&'", "'?'" ];
-	public static readonly symbolicNames: string[] = [ null, "CREATE", "NODE", 
-                                                    "EDGE", "OPEN", "OPTIONAL", 
-                                                    "TYPE", "GRAPH", "STRICT", 
-                                                    "LOOSE", "ABSTRACT", 
-                                                    "IMPORTS", "LPAREN", 
-                                                    "RPAREN", "LBRACK", 
-                                                    "RBRACK", "LBRACE", 
-                                                    "RBRACE", "COMMA", "COLON", 
-                                                    "SEMICOLON", "DASH", 
-                                                    "ARROW", "BAR", "AMPERSAND", 
-                                                    "QUESTION", "StringLiteral", 
-                                                    "Whitespace" ];
+	public static readonly literalNames: (string | null)[] = [ null, "'create'", 
+                                                            "'node'", "'edge'", 
+                                                            "'open'", "'optional'", 
+                                                            "'type'", "'graph'", 
+                                                            "'strict'", 
+                                                            "'loose'", "'abstract'", 
+                                                            "'imports'", 
+                                                            "'('", "')'", 
+                                                            "'['", "']'", 
+                                                            "'{'", "'}'", 
+                                                            "','", "':'", 
+                                                            "';'", "'-'", 
+                                                            "'>'", "'|'", 
+                                                            "'&'", "'?'" ];
+	public static readonly symbolicNames: (string | null)[] = [ null, "CREATE", 
+                                                             "NODE", "EDGE", 
+                                                             "OPEN", "OPTIONAL", 
+                                                             "TYPE", "GRAPH", 
+                                                             "STRICT", "LOOSE", 
+                                                             "ABSTRACT", 
+                                                             "IMPORTS", 
+                                                             "LPAREN", "RPAREN", 
+                                                             "LBRACK", "RBRACK", 
+                                                             "LBRACE", "RBRACE", 
+                                                             "COMMA", "COLON", 
+                                                             "SEMICOLON", 
+                                                             "DASH", "ARROW", 
+                                                             "BAR", "AMPERSAND", 
+                                                             "QUESTION", 
+                                                             "StringLiteral", 
+                                                             "Whitespace" ];
 	public static readonly modeNames: string[] = [ "DEFAULT_MODE", ];
 
 	public static readonly ruleNames: string[] = [

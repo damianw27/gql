@@ -1,4 +1,4 @@
-// Generated from src/versions/pg-schema/antlr/PGSParser.g4 by ANTLR 4.12.0
+// Generated from src/versions/pg-schema/antlr/PGSParser.g4 by ANTLR 4.13.0
 
 import {ParseTreeListener} from "@gql-grammar/antlr4";
 

@@ -1,4 +1,4 @@
-// Generated from src/versions/pg-schema/antlr/PGSParser.g4 by ANTLR 4.12.0
+// Generated from src/versions/pg-schema/antlr/PGSParser.g4 by ANTLR 4.13.0
 // noinspection ES6UnusedImports,JSUnusedGlobalSymbols,JSUnusedLocalSymbols
 
 import {
@@ -10,7 +10,7 @@ import {
 	TerminalNode, RuleNode,
 	Token, TokenStream,
 	Interval, IntervalSet
-} from "@gql-grammar/antlr4";
+} from '@gql-grammar/antlr4';
 import PGSParserListener from "./PGSParserListener.js";
 // for running tests with parameters, TODO: discuss strategy for typed parameters in CI
 // eslint-disable-next-line no-unused-vars

@@ -11,8 +11,8 @@
   "license": "MIT",
   "type": "commonjs",
   "scripts": {
-    "build:grammar": "antlr4 -Dlanguage=TypeScript -o src/versions/latest/generated/ src/versions/latest/antlr/GqlLexer.g4 -o src/versions/latest/generated/ src/versions/latest/antlr/GqlParser.g4",
-    "build:grammar1": "antlr4 -Dlanguage=TypeScript -o src/versions/pg-schema/generated/ src/versions/pg-schema/antlr/PGSLexer.g4 -o src/versions/pg-schema/generated/ src/versions/pg-schema/antlr/PGSParser.g4",
+    "build:grammar": "antlr4 -Dlanguage=TypeScript -o src/versions/latest/generated src/versions/latest/antlr/GqlLexer.g4; antlr4 -Dlanguage=TypeScript -o src/versions/latest/generated -lib src/versions/latest/generated/src/versions/latest/antlr src/versions/latest/antlr/GqlParser.g4",
+    "build:grammar1": "antlr4 -Dlanguage=TypeScript -o src/versions/pg-schema/generated src/versions/pg-schema/antlr/PGSLexer.g4; antlr4 -Dlanguage=TypeScript -o src/versions/pg-schema/generated -lib src/versions/pg-schema/generated/src/versions/pg-schema/antlr src/versions/pg-schema/antlr/PGSParser.g4",
     "build:lib": "webpack && tsc-alias -p tsconfig.json",
     "build:all": "yarn build:grammar && yarn build:lib",
     "test": "jest"
