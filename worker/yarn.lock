@@ -336,12 +336,10 @@
 "@gql-grammar/antlr4@file:../antlr":
   version "4.12.0"
 
-"@gql-grammar/core@^1.0.10":
+"@gql-grammar/core@file:../grammar":
   version "1.0.10"
-  resolved "https://registry.yarnpkg.com/@gql-grammar/core/-/core-1.0.10.tgz#553d1d58749f6740e464b6a321a55f9bb4b5f5fa"
-  integrity sha512-nisIrz0smxagdBgkRjRFZlQhkIYQ2zjuQeAnTOIhWG9AuH222GHn3tfs/emwYL1MFJqcTxxPomkhxH0MRbihFA==
   dependencies:
-    antlr4 "^4.12.0"
+    "@gql-grammar/antlr4" "file:C:/Users/marmo/AppData/Local/Yarn/Cache/v6/npm-@gql-grammar-core-1.0.10-83a3d537-c5c9-4b33-8b8f-1fb6bd7af514-1702484032400/node_modules/@gql-grammar/antlr"
 
 "@humanwhocodes/config-array@^0.6.0":
   version "0.6.0"
@@ -1215,11 +1213,6 @@ ansi-styles@^5.0.0:
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-5.2.0.tgz#07449690ad45777d1924ac2abb2fc8895dba836b"
   integrity sha512-Cxwpt2SfTzTtXcfOlzGEee8O+c+MmUgGrNiBcXnuWxuFJHe6a5Hz7qwhwe5OgaSYI0IJvkLqWX1ASG+cJOkEiA==
-
-antlr4@^4.12.0:
-  version "4.12.0"
-  resolved "https://registry.yarnpkg.com/antlr4/-/antlr4-4.12.0.tgz#e2323fbb057c77068a174914b0533398aeaba56a"
-  integrity sha512-23iB5IzXJZRZeK9TigzUyrNc9pSmNqAerJRBcNq1ETrmttMWRgaYZzC561IgEO3ygKsDJTYDTozABXa4b/fTQQ==
 
 anymatch@^3.0.3, anymatch@~3.1.2:
   version "3.1.3"

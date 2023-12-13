@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@gql-grammar/antlr4": "file:../antlr",
-    "@gql-grammar/core": "^1.0.10"
+    "@gql-grammar/core": "file:../grammar"
   },
   "devDependencies": {
     "@types/jest": "^29.5.1",
